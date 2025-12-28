@@ -330,6 +330,29 @@
         .floor-item:hover {
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             transform: translateY(-1px);
+            cursor: grab;
+        }
+        
+        .floor-item.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+        
+        .floor-item.drag-over {
+            border-top: 3px solid var(--accent);
+            transform: translateY(0);
+        }
+        
+        .drag-handle {
+            cursor: grab;
+            padding: 5px;
+            color: var(--hks-grey);
+            font-size: 18px;
+            user-select: none;
+        }
+        
+        .drag-handle:active {
+            cursor: grabbing;
         }
         
         .floor-controls {
@@ -664,7 +687,7 @@
                 </div>
                 
                 <div class="info-box">
-                    <p><strong>Floor Mapping Instructions:</strong> Assign Revit levels to building floor nomenclature. Roof should be at top, descending through floors to ground reference, then basement levels below. Use arrows to reorder, or add/remove floors as needed.</p>
+                    <p><strong>Floor Mapping Instructions:</strong> Assign Revit levels to building floor nomenclature. Floors are automatically sorted with roof at top, descending through numbered floors to ground, then basements below. <strong>Drag and drop</strong> any floor to reorder, or use arrows, add/remove buttons as needed.</p>
                 </div>
                 
                 <div class="stats-grid" id="statsGrid">
@@ -902,6 +925,11 @@
                 };
             });
             
+            // Auto-sort floors intelligently (Roof -> Floors -> Basements)
+            floorMappings.sort(function(a, b) {
+                return compareFloors(b.buildingFloor, a.buildingFloor);
+            });
+            
             originalMappings = JSON.parse(JSON.stringify(floorMappings));
             renderFloorMappings();
         }
@@ -913,11 +941,14 @@
             floorMappings.forEach(function(mapping, index) {
                 var floorItem = document.createElement('div');
                 floorItem.className = 'floor-item';
+                floorItem.draggable = true;
+                floorItem.dataset.index = index;
                 
                 var isFirst = index === 0;
                 var isLast = index === floorMappings.length - 1;
                 
                 floorItem.innerHTML = 
+                    '<div class="drag-handle" title="Drag to reorder">⋮⋮</div>' +
                     '<div class="floor-controls">' +
                         '<button class="control-btn" onclick="moveFloor(' + index + ', -1)" ' + (isFirst ? 'disabled' : '') + ' title="Move up">▲</button>' +
                         '<button class="control-btn" onclick="moveFloor(' + index + ', 1)" ' + (isLast ? 'disabled' : '') + ' title="Move down">▼</button>' +
@@ -939,11 +970,84 @@
                         '<button class="action-btn remove" onclick="removeFloor(' + index + ')">✕ Remove</button>' +
                     '</div>';
                 
+                // Add drag event listeners
+                floorItem.addEventListener('dragstart', handleDragStart);
+                floorItem.addEventListener('dragover', handleDragOver);
+                floorItem.addEventListener('drop', handleDrop);
+                floorItem.addEventListener('dragend', handleDragEnd);
+                floorItem.addEventListener('dragleave', handleDragLeave);
+                
                 mappingContainer.appendChild(floorItem);
             });
             
             // Update total floors stat
             document.getElementById('totalFloors').textContent = floorMappings.length;
+        }
+        
+        // Drag and Drop handlers
+        var draggedIndex = null;
+        
+        function handleDragStart(e) {
+            draggedIndex = parseInt(this.dataset.index);
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', this.innerHTML);
+        }
+        
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            e.dataTransfer.dropEffect = 'move';
+            
+            // Add visual indicator
+            var items = document.querySelectorAll('.floor-item');
+            items.forEach(function(item) {
+                item.classList.remove('drag-over');
+            });
+            this.classList.add('drag-over');
+            
+            return false;
+        }
+        
+        function handleDragLeave(e) {
+            this.classList.remove('drag-over');
+        }
+        
+        function handleDrop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+            
+            var dropIndex = parseInt(this.dataset.index);
+            
+            if (draggedIndex !== null && draggedIndex !== dropIndex) {
+                // Reorder the array
+                var draggedItem = floorMappings[draggedIndex];
+                floorMappings.splice(draggedIndex, 1);
+                
+                // Adjust index if dragging down
+                if (draggedIndex < dropIndex) {
+                    dropIndex--;
+                }
+                
+                floorMappings.splice(dropIndex, 0, draggedItem);
+                renderFloorMappings();
+            }
+            
+            return false;
+        }
+        
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            
+            // Remove drag-over class from all items
+            var items = document.querySelectorAll('.floor-item');
+            items.forEach(function(item) {
+                item.classList.remove('drag-over');
+            });
+            
+            draggedIndex = null;
         }
         
         // Floor mapping functions
@@ -989,10 +1093,77 @@
         }
         
         function autoSortFloors() {
+            // Smart building floor sort - Roof at top, descending floors, then basements
             floorMappings.sort(function(a, b) {
-                return b.buildingFloor.localeCompare(a.buildingFloor, undefined, {numeric: true});
+                return compareFloors(b.buildingFloor, a.buildingFloor);
             });
             renderFloorMappings();
+        }
+        
+        function compareFloors(floor1, floor2) {
+            // Helper function to determine floor hierarchy
+            var f1 = analyzeFloor(floor1);
+            var f2 = analyzeFloor(floor2);
+            
+            // First sort by category (roof > penthouse > floors > ground > basement)
+            if (f1.category !== f2.category) {
+                return f1.category - f2.category;
+            }
+            
+            // Within same category, sort by number
+            // For regular floors (category 3), higher numbers first (descending)
+            // For basements (category 5), lower numbers first (B1, B2, B3... descending into ground)
+            if (f1.category === 3) {
+                return f2.number - f1.number; // Reverse for regular floors
+            } else {
+                return f1.number - f2.number; // Normal for basements
+            }
+        }
+        
+        function analyzeFloor(floorName) {
+            var name = floorName.toUpperCase();
+            var number = 0;
+            var category = 3; // Default to regular floor
+            
+            // Roof - highest priority (category 0)
+            if (name.includes('ROOF')) {
+                category = 0;
+                return { category: category, number: 0 };
+            }
+            
+            // Penthouse / Mechanical / Machine Room (category 1)
+            if (name.includes('PENTHOUSE') || name.includes('MECHANICAL') || 
+                name.includes('MACHINE') || name.includes('PH')) {
+                category = 1;
+                return { category: category, number: 0 };
+            }
+            
+            // Ground floor (category 4)
+            if (name.includes('GROUND') || name.includes('LOBBY') || 
+                name.includes('MAIN') || name === 'G' || name === 'L') {
+                category = 4;
+                return { category: category, number: 0 };
+            }
+            
+            // Basement levels (category 5)
+            var basementMatch = name.match(/B[-\s]?(\d+)/i) || name.match(/BASEMENT[-\s]?(\d+)/i);
+            if (basementMatch) {
+                category = 5;
+                number = parseInt(basementMatch[1]) || 1;
+                return { category: category, number: number };
+            }
+            
+            // Regular numbered floors (category 3)
+            // Match patterns like: LEVEL 01, L01, LEVEL 4, P2, etc.
+            var floorMatch = name.match(/(?:LEVEL|L|P|FLOOR)[-\s]?(\d+)/i) || name.match(/^(\d+)/);
+            if (floorMatch) {
+                category = 3;
+                number = parseInt(floorMatch[1]) || 0;
+                return { category: category, number: number };
+            }
+            
+            // If no pattern matches, treat as regular floor with 0
+            return { category: category, number: 0 };
         }
         
         function resetMappings() {
