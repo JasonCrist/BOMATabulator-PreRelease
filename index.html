@@ -570,7 +570,10 @@
             showStep(3);
         }
         
-        function generateExcel() {
+        // Template URL - upload BOMA_Template.xlsx to GitHub for formatted output
+        const TEMPLATE_URL = 'https://raw.githubusercontent.com/JasonCrist/BOMATabulator-PreRelease/main/BOMA_Template.xlsx';
+        
+        async function generateExcel() {
             try {
                 generateBtn.disabled = true;
                 generateBtn.innerHTML = '<span class="spinner"></span> Generating...';
@@ -642,35 +645,40 @@
                     return;
                 }
                 
-                // Create new workbook
-                const wb = XLSX.utils.book_new();
-                
                 // Get all floors from floorMappings (includes new floors)
                 const allFloors = floorMappings.map(m => m.buildingFloor);
                 
-                // Create BOMA-B Sheet
-                createBOMAMethodB(wb, allFloors, sourceFloorLookup);
-                
-                // Create BOMA-A Sheet
-                createBOMAMethodA(wb, allFloors, sourceFloorLookup);
-                
-                // Create Revit Data Sheet
-                const wsData = XLSX.utils.json_to_sheet(mappedData);
-                XLSX.utils.book_append_sheet(wb, wsData, 'Revit Data');
-                
-                // Download
-                const timestamp = new Date().toISOString().split('T')[0];
-                XLSX.writeFile(wb, `BOMA_Calculations_${timestamp}.xlsx`, { 
-                    bookType: 'xlsx', 
-                    cellFormula: true 
-                });
-                
-                alert('✓ BOMA Excel generated successfully!\n\n' +
-                      'Includes:\n' +
-                      `• HKS-BOMA-B (Method B) - ${allFloors.length} floors\n` +
-                      `• HKS-BOMA-A (Method A) - ${allFloors.length} floors\n` +
-                      '• Revit Data\n' +
-                      'All with formulas preserved!');
+                // Try template first, fall back to basic generation
+                try {
+                    await generateWithTemplate(allFloors, sourceFloorLookup, mappedData);
+                    alert('✓ BOMA Excel generated with formatting!\n\n' +
+                          `• HKS-BOMA-B - ${allFloors.length} floors\n` +
+                          `• HKS-BOMA-A - ${allFloors.length} floors\n` +
+                          '• Revit Data\n' +
+                          '• All formatting preserved! ✓');
+                } catch (templateError) {
+                    console.log('Template not available, using basic generation:', templateError.message);
+                    
+                    // Fall back to basic generation
+                    const wb = XLSX.utils.book_new();
+                    createBOMAMethodB(wb, allFloors, sourceFloorLookup);
+                    createBOMAMethodA(wb, allFloors, sourceFloorLookup);
+                    
+                    const wsData = XLSX.utils.json_to_sheet(mappedData);
+                    XLSX.utils.book_append_sheet(wb, wsData, 'Revit Data');
+                    
+                    const timestamp = new Date().toISOString().split('T')[0];
+                    XLSX.writeFile(wb, `BOMA_Calculations_${timestamp}.xlsx`, { 
+                        bookType: 'xlsx', 
+                        cellFormula: true 
+                    });
+                    
+                    alert('✓ BOMA Excel generated!\n\n' +
+                          `• HKS-BOMA-B - ${allFloors.length} floors\n` +
+                          `• HKS-BOMA-A - ${allFloors.length} floors\n` +
+                          '• Revit Data\n\n' +
+                          'Note: Upload BOMA_Template.xlsx to GitHub for formatted output');
+                }
                 
                 generateBtn.disabled = false;
                 generateBtn.innerHTML = '<span>📊</span> Generate Excel with Formulas';
@@ -680,6 +688,140 @@
                 generateBtn.disabled = false;
                 generateBtn.innerHTML = '<span>📊</span> Generate Excel with Formulas';
             }
+        }
+        
+        async function generateWithTemplate(floors, sourceFloorLookup, mappedData) {
+            // Fetch template from GitHub
+            const response = await fetch(TEMPLATE_URL);
+            if (!response.ok) {
+                throw new Error('Template not found - upload BOMA_Template.xlsx to GitHub');
+            }
+            
+            const arrayBuffer = await response.arrayBuffer();
+            const data = new Uint8Array(arrayBuffer);
+            const wb = XLSX.read(data, { type: 'array', cellStyles: true });
+            
+            // Populate BOMA-B
+            populateBOMAMethodB(wb, floors, sourceFloorLookup);
+            
+            // Populate BOMA-A  
+            populateBOMAMethodA(wb, floors, sourceFloorLookup);
+            
+            // Populate Revit Data
+            const wsData = wb.Sheets['Revit Data'];
+            const dataRange = XLSX.utils.decode_range(wsData['!ref']);
+            for (let R = 1; R <= dataRange.e.r; R++) {
+                for (let C = 0; C <= 3; C++) {
+                    const cellAddr = XLSX.utils.encode_cell({ r: R, c: C });
+                    delete wsData[cellAddr];
+                }
+            }
+            
+            mappedData.forEach((row, idx) => {
+                const rowNum = idx + 2;
+                wsData[`A${rowNum}`] = { t: 's', v: row.FloorMap };
+                wsData[`B${rowNum}`] = { t: 's', v: row.Name };
+                wsData[`C${rowNum}`] = { t: 's', v: row['Area Scheme Name'] };
+                wsData[`D${rowNum}`] = { t: 'n', v: row.Area, z: '#,##0' };
+            });
+            wsData['!ref'] = `A1:D${mappedData.length + 1}`;
+            
+            // Update dates
+            const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            if (wb.Sheets['HKS-BOMA-B']['J2']) wb.Sheets['HKS-BOMA-B']['J2'].v = dateStr;
+            if (wb.Sheets['HKS-BOMA-A']['O2']) wb.Sheets['HKS-BOMA-A']['O2'].v = dateStr;
+            
+            // Download
+            const timestamp = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(wb, `BOMA_Calculations_${timestamp}.xlsx`, { bookType: 'xlsx', cellStyles: true });
+        }
+        
+        function populateBOMAMethodB(wb, floors, sourceFloorLookup) {
+            const ws = wb.Sheets['HKS-BOMA-B'];
+            const startRow = 9;
+            
+            floors.forEach((floor, idx) => {
+                const row = startRow + idx;
+                const rowStr = row.toString();
+                const sourceFloor = sourceFloorLookup[floor] || floor;
+                
+                ws['A' + rowStr] = { t: 's', v: floor };
+                ws['B' + rowStr] = { t: 'n', f: `SUMIF('Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$D:$D)`, z: '#,##0' };
+                ws['C' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"PA")`, z: '#,##0' };
+                ws['D' + rowStr] = { t: 'n', f: `B${rowStr}-C${rowStr}`, z: '#,##0' };
+                ws['E' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"MVP")`, z: '#,##0' };
+                ws['F' + rowStr] = { t: 'n', f: `D${rowStr}-E${rowStr}`, z: '#,##0' };
+                ws['G' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"TA-BALC")`, z: '#,##0' };
+                ws['H' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"TA")`, z: '#,##0' };
+                const subRowRef = (startRow + floors.length).toString();
+                ws['I' + rowStr] = { t: 'n', f: `IF($H$${subRowRef}=0,0,($F$${subRowRef}-$G$${subRowRef})/$H$${subRowRef})`, z: '0.0000' };
+                ws['J' + rowStr] = { t: 'n', f: `G${rowStr}+(H${rowStr}*I${rowStr})`, z: '#,##0' };
+            });
+            
+            const subRow = startRow + floors.length;
+            const lastDataRow = subRow - 1;
+            
+            ws['A' + subRow] = { t: 's', v: 'SubTotal' };
+            ws['B' + subRow] = { t: 'n', f: `SUM(B${startRow}:B${lastDataRow})`, z: '#,##0' };
+            ws['C' + subRow] = { t: 'n', f: `SUM(C${startRow}:C${lastDataRow})`, z: '#,##0' };
+            ws['D' + subRow] = { t: 'n', f: `SUM(D${startRow}:D${lastDataRow})`, z: '#,##0' };
+            ws['E' + subRow] = { t: 'n', f: `SUM(E${startRow}:E${lastDataRow})`, z: '#,##0' };
+            ws['F' + subRow] = { t: 'n', f: `SUM(F${startRow}:F${lastDataRow})`, z: '#,##0' };
+            ws['G' + subRow] = { t: 'n', f: `SUM(G${startRow}:G${lastDataRow})`, z: '#,##0' };
+            ws['H' + subRow] = { t: 'n', f: `SUM(H${startRow}:H${lastDataRow})`, z: '#,##0' };
+            ws['I' + subRow] = { t: 'n', f: `IF(H${subRow}=0,0,(F${subRow}-G${subRow})/H${subRow})`, z: '0.0000' };
+            ws['J' + subRow] = { t: 'n', f: `SUM(J${startRow}:J${lastDataRow})`, z: '#,##0' };
+            
+            ws['!ref'] = `A1:K${subRow}`;
+        }
+        
+        function populateBOMAMethodA(wb, floors, sourceFloorLookup) {
+            const ws = wb.Sheets['HKS-BOMA-A'];
+            const startRow = 9;
+            
+            floors.forEach((floor, idx) => {
+                const row = startRow + idx;
+                const rowStr = row.toString();
+                const subRowRef = (startRow + floors.length).toString();
+                const sourceFloor = sourceFloorLookup[floor] || floor;
+                
+                ws['A' + rowStr] = { t: 's', v: floor };
+                ws['B' + rowStr] = { t: 'n', f: `SUMIF('Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$D:$D)`, z: '#,##0' };
+                ws['C' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"PA")`, z: '#,##0' };
+                ws['D' + rowStr] = { t: 'n', f: `B${rowStr}-C${rowStr}`, z: '#,##0' };
+                ws['E' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"MVP")`, z: '#,##0' };
+                ws['F' + rowStr] = { t: 'n', f: `D${rowStr}-E${rowStr}`, z: '#,##0' };
+                ws['G' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"TA-BALC")`, z: '#,##0' };
+                ws['H' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"TA")`, z: '#,##0' };
+                ws['I' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"BSA")`, z: '#,##0' };
+                ws['J' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"FSA")+SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"BBC")`, z: '#,##0' };
+                ws['K' + rowStr] = { t: 'n', f: `IF(H${rowStr}=0,0,(H${rowStr}+J${rowStr})/H${rowStr})`, z: '0.0000' };
+                ws['L' + rowStr] = { t: 'n', f: `H${rowStr}*K${rowStr}`, z: '#,##0' };
+                ws['M' + rowStr] = { t: 'n', f: `IF(($F$${subRowRef}-$G$${subRowRef}-$I$${subRowRef})=0,0,($F$${subRowRef}-$G$${subRowRef})/($F$${subRowRef}-$G$${subRowRef}-$I$${subRowRef}))`, z: '0.0000' };
+                ws['N' + rowStr] = { t: 'n', f: `G${rowStr}+(L${rowStr}*M${rowStr})`, z: '#,##0' };
+                ws['O' + rowStr] = { t: 'n', f: `IF(H${rowStr}=0,0,N${rowStr}/H${rowStr})`, z: '0.0000' };
+            });
+            
+            const subRow = startRow + floors.length;
+            const lastDataRow = subRow - 1;
+            
+            ws['A' + subRow] = { t: 's', v: 'SubTotal' };
+            ws['B' + subRow] = { t: 'n', f: `SUM(B${startRow}:B${lastDataRow})`, z: '#,##0' };
+            ws['C' + subRow] = { t: 'n', f: `SUM(C${startRow}:C${lastDataRow})`, z: '#,##0' };
+            ws['D' + subRow] = { t: 'n', f: `SUM(D${startRow}:D${lastDataRow})`, z: '#,##0' };
+            ws['E' + subRow] = { t: 'n', f: `SUM(E${startRow}:E${lastDataRow})`, z: '#,##0' };
+            ws['F' + subRow] = { t: 'n', f: `SUM(F${startRow}:F${lastDataRow})`, z: '#,##0' };
+            ws['G' + subRow] = { t: 'n', f: `SUM(G${startRow}:G${lastDataRow})`, z: '#,##0' };
+            ws['H' + subRow] = { t: 'n', f: `SUM(H${startRow}:H${lastDataRow})`, z: '#,##0' };
+            ws['I' + subRow] = { t: 'n', f: `SUM(I${startRow}:I${lastDataRow})`, z: '#,##0' };
+            ws['J' + subRow] = { t: 'n', f: `SUM(J${startRow}:J${lastDataRow})`, z: '#,##0' };
+            ws['K' + subRow] = { t: 'n', f: `IF(H${subRow}=0,0,(H${subRow}+J${subRow})/H${subRow})`, z: '0.0000' };
+            ws['L' + subRow] = { t: 'n', f: `SUM(L${startRow}:L${lastDataRow})`, z: '#,##0' };
+            ws['M' + subRow] = { t: 'n', f: `IF((F${subRow}-G${subRow}-I${subRow})=0,0,(F${subRow}-G${subRow})/(F${subRow}-G${subRow}-I${subRow}))`, z: '0.0000' };
+            ws['N' + subRow] = { t: 'n', f: `SUM(N${startRow}:N${lastDataRow})`, z: '#,##0' };
+            ws['O' + subRow] = { t: 'n', f: `IF(H${subRow}=0,0,N${subRow}/H${subRow})`, z: '0.0000' };
+            
+            ws['!ref'] = `A1:P${subRow}`;
         }
         
         function createBOMAMethodB(wb, floors, sourceFloorLookup) {
