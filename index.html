@@ -875,10 +875,9 @@
                         // Filter out invalid levels:
                         // - Empty or null values
                         // - Revit instance IDs (start with "(Instance)")
-                        // - Very short strings (< 3 characters)
                         if (level && 
                             typeof level === 'string' && 
-                            level.trim().length > 2 &&
+                            level.trim().length > 0 &&
                             !level.startsWith('(Instance)') &&
                             !seenLevels[level]) {
                             seenLevels[level] = true;
@@ -1243,7 +1242,7 @@
                         // Filter out rows with invalid levels
                         return level && 
                                typeof level === 'string' && 
-                               level.trim().length > 2 &&
+                               level.trim().length > 0 &&
                                !level.startsWith('(Instance)') &&
                                mappingLookup[level];
                     })
