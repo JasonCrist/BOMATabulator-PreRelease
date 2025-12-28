@@ -5,35 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HKS BOMA Calculator</title>
     
-    <!-- 
-    ═══════════════════════════════════════════════════════════════════════════════
-    SELF-CONTAINED VERSION - FOR OFFLINE SHAREPOINT USE
-    ═══════════════════════════════════════════════════════════════════════════════
-    
-    TO MAKE THIS TRULY SELF-CONTAINED (NO INTERNET REQUIRED):
-    
-    1. Download the library from: https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js
-    2. Open that downloaded file in a text editor
-    3. Copy ALL the JavaScript code
-    4. Replace the <script src="..."> tag below with:
-       <script>
-       [PASTE THE LIBRARY CODE HERE]
-       </script>
-    
-    OR - This file will work fine when opened via SharePoint with ?web=1 parameter
-    since the user's browser will have internet access to load the library.
-    ═══════════════════════════════════════════════════════════════════════════════
-    -->
-    
-    <!-- SheetJS Library from CDN - works when user has internet -->
+    <!-- SheetJS Library from CDN -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
         :root {
             --hks-grey: #7B797D;
@@ -47,7 +23,7 @@
         }
         
         body {
-            font-family: Arial, 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: Arial, sans-serif;
             background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
             min-height: 100vh;
             padding: 20px;
@@ -63,7 +39,6 @@
             overflow: hidden;
         }
         
-        /* Header */
         .header {
             background: var(--hks-grey);
             color: white;
@@ -71,105 +46,17 @@
             border-bottom: 4px solid var(--hks-dark);
         }
         
-        .header h1 {
-            font-size: 32px;
-            font-weight: 600;
-            letter-spacing: -0.5px;
-            margin-bottom: 8px;
-        }
+        .header h1 { font-size: 32px; font-weight: 600; margin-bottom: 8px; }
+        .header p { opacity: 0.95; font-size: 15px; }
         
-        .header p {
-            opacity: 0.95;
-            font-size: 15px;
-        }
+        .content { padding: 40px; }
         
-        /* Main Content */
-        .content {
-            padding: 40px;
-        }
+        .step { margin-bottom: 40px; padding-bottom: 40px; border-bottom: 1px solid var(--border); }
+        .step:last-child { border-bottom: none; }
         
-        /* Progress Indicator */
-        .progress-bar {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 40px;
-            padding: 0 20px;
-        }
-        
-        .progress-step {
-            flex: 1;
-            text-align: center;
-            position: relative;
-        }
-        
-        .progress-step::before {
-            content: '';
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            right: -50%;
-            height: 2px;
-            background: var(--border);
-            z-index: 0;
-        }
-        
-        .progress-step:last-child::before {
-            display: none;
-        }
-        
-        .progress-step.active .step-circle {
-            background: var(--accent);
-            color: white;
-            border-color: var(--accent);
-        }
-        
-        .progress-step.completed .step-circle {
-            background: var(--success);
-            color: white;
-            border-color: var(--success);
-        }
-        
-        .step-circle {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: white;
-            border: 2px solid var(--border);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            position: relative;
-            z-index: 1;
-            transition: all 0.3s ease;
-        }
-        
-        .step-label {
-            margin-top: 8px;
-            font-size: 13px;
-            color: #666;
-        }
-        
-        /* Step Sections */
-        .step {
-            margin-bottom: 40px;
-            padding-bottom: 40px;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .step:last-child {
-            border-bottom: none;
-        }
-        
-        .step-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
+        .step-header { display: flex; align-items: center; margin-bottom: 20px; }
         .step-number {
-            width: 40px;
-            height: 40px;
+            width: 40px; height: 40px;
             background: var(--hks-grey);
             color: white;
             border-radius: 50%;
@@ -180,14 +67,8 @@
             margin-right: 15px;
             font-size: 18px;
         }
+        .step-title { font-size: 22px; color: var(--hks-dark); font-weight: 600; }
         
-        .step-title {
-            font-size: 22px;
-            color: var(--hks-dark);
-            font-weight: 600;
-        }
-        
-        /* File Upload */
         .upload-zone {
             border: 2px dashed var(--border);
             border-radius: 8px;
@@ -196,41 +77,11 @@
             background: var(--hks-light);
             cursor: pointer;
             transition: all 0.3s ease;
-            position: relative;
         }
-        
-        .upload-zone:hover {
-            border-color: var(--accent);
-            background: #e3f2fd;
-        }
-        
-        .upload-zone.dragover {
-            border-color: var(--accent);
-            background: #e3f2fd;
-            transform: scale(1.01);
-            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
-        }
-        
-        .upload-icon {
-            font-size: 56px;
-            margin-bottom: 15px;
-        }
-        
-        .upload-text {
-            font-size: 18px;
-            color: var(--hks-dark);
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-        
-        .upload-hint {
-            font-size: 14px;
-            color: #666;
-        }
-        
-        input[type="file"] {
-            display: none;
-        }
+        .upload-zone:hover { border-color: var(--accent); background: #e3f2fd; }
+        .upload-icon { font-size: 56px; margin-bottom: 15px; }
+        .upload-text { font-size: 18px; color: var(--hks-dark); margin-bottom: 8px; font-weight: 500; }
+        input[type="file"] { display: none; }
         
         .file-info {
             display: none;
@@ -240,54 +91,8 @@
             background: #e8f5e9;
             border-radius: 8px;
             margin-top: 20px;
-            border: 1px solid #c8e6c9;
         }
-        
-        .file-info.active {
-            display: flex;
-        }
-        
-        .file-icon {
-            color: var(--success);
-            font-size: 32px;
-        }
-        
-        .file-details h3 {
-            color: var(--hks-dark);
-            font-size: 16px;
-            margin-bottom: 4px;
-        }
-        
-        .file-details p {
-            font-size: 14px;
-            color: #666;
-        }
-        
-        /* Floor Mapping Interface */
-        .mapping-controls {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .mapping-controls button {
-            padding: 10px 20px;
-            border: 1px solid var(--border);
-            background: white;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .mapping-controls button:hover {
-            background: var(--hks-light);
-            border-color: var(--hks-grey);
-        }
+        .file-info.active { display: flex; }
         
         .mapping-container {
             background: var(--hks-light);
@@ -295,24 +100,6 @@
             padding: 25px;
             max-height: 500px;
             overflow-y: auto;
-        }
-        
-        .mapping-container::-webkit-scrollbar {
-            width: 10px;
-        }
-        
-        .mapping-container::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 5px;
-        }
-        
-        .mapping-container::-webkit-scrollbar-thumb {
-            background: var(--hks-grey);
-            border-radius: 5px;
-        }
-        
-        .mapping-container::-webkit-scrollbar-thumb:hover {
-            background: var(--hks-dark);
         }
         
         .floor-item {
@@ -325,68 +112,20 @@
             gap: 15px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             transition: all 0.2s ease;
+            cursor: grab;
         }
-        
         .floor-item:hover {
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             transform: translateY(-1px);
-            cursor: grab;
         }
-        
-        .floor-item.dragging {
-            opacity: 0.5;
-            cursor: grabbing;
-        }
-        
-        .floor-item.drag-over {
-            border-top: 3px solid var(--accent);
-            transform: translateY(0);
-        }
+        .floor-item.dragging { opacity: 0.5; cursor: grabbing; }
+        .floor-item.drag-over { border-top: 3px solid var(--accent); }
         
         .drag-handle {
             cursor: grab;
             padding: 5px;
             color: var(--hks-grey);
             font-size: 18px;
-            user-select: none;
-        }
-        
-        .drag-handle:active {
-            cursor: grabbing;
-        }
-        
-        .floor-controls {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        
-        .control-btn {
-            width: 32px;
-            height: 32px;
-            border: 1px solid var(--border);
-            background: white;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--hks-dark);
-            font-size: 16px;
-            transition: all 0.2s ease;
-            font-weight: bold;
-        }
-        
-        .control-btn:hover:not(:disabled) {
-            background: var(--hks-grey);
-            color: white;
-            border-color: var(--hks-grey);
-            transform: scale(1.05);
-        }
-        
-        .control-btn:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
         }
         
         .floor-label {
@@ -398,16 +137,6 @@
             border-radius: 4px;
         }
         
-        .floor-label.new-level {
-            color: var(--warning);
-            font-style: italic;
-        }
-        
-        .arrow-icon {
-            font-size: 24px;
-            color: var(--hks-grey);
-        }
-        
         .floor-input {
             flex: 1;
             padding: 12px 15px;
@@ -415,9 +144,7 @@
             border-radius: 6px;
             font-size: 15px;
             font-family: Arial, sans-serif;
-            transition: all 0.2s ease;
         }
-        
         .floor-input:focus {
             outline: none;
             border-color: var(--accent);
@@ -429,7 +156,6 @@
             gap: 8px;
             flex-wrap: wrap;
         }
-        
         .action-btn {
             padding: 8px 14px;
             border: 1px solid var(--border);
@@ -438,21 +164,10 @@
             cursor: pointer;
             font-size: 13px;
             transition: all 0.2s ease;
-            white-space: nowrap;
         }
+        .action-btn:hover { background: var(--hks-light); }
+        .action-btn.remove:hover { background: #ffebee; border-color: var(--error); color: var(--error); }
         
-        .action-btn:hover {
-            background: var(--hks-light);
-            transform: translateY(-1px);
-        }
-        
-        .action-btn.remove:hover {
-            background: #ffebee;
-            border-color: var(--error);
-            color: var(--error);
-        }
-        
-        /* Buttons */
         .btn {
             padding: 14px 32px;
             border: none;
@@ -464,43 +179,14 @@
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            font-family: Arial, sans-serif;
         }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { background: #1976D2; transform: translateY(-2px); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #45a049; transform: translateY(-2px); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         
-        .btn-primary {
-            background: var(--accent);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #1976D2;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(33, 150, 243, 0.3);
-        }
-        
-        .btn-success {
-            background: var(--success);
-            color: white;
-        }
-        
-        .btn-success:hover {
-            background: #45a049;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(76, 175, 80, 0.3);
-        }
-        
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-        
-        /* Hidden sections */
-        .hidden {
-            display: none !important;
-        }
-        
-        /* Info boxes */
+        .hidden { display: none !important; }
         .info-box {
             background: #e3f2fd;
             border-left: 4px solid var(--accent);
@@ -509,31 +195,12 @@
             border-radius: 4px;
         }
         
-        .info-box p {
-            color: var(--hks-dark);
-            font-size: 14px;
-            line-height: 1.6;
-            margin: 0;
-        }
-        
-        .info-box.warning {
-            background: #fff3e0;
-            border-left-color: var(--warning);
-        }
-        
-        .info-box.error {
-            background: #ffebee;
-            border-left-color: var(--error);
-        }
-        
-        /* Stats Display */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
             margin: 20px 0;
         }
-        
         .stat-card {
             background: white;
             padding: 20px;
@@ -541,7 +208,6 @@
             border: 1px solid var(--border);
             text-align: center;
         }
-        
         .stat-value {
             font-size: 32px;
             font-weight: 600;
@@ -549,14 +215,6 @@
             margin-bottom: 5px;
         }
         
-        .stat-label {
-            font-size: 13px;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        /* Loading Spinner */
         .spinner {
             display: inline-block;
             width: 20px;
@@ -566,115 +224,34 @@
             border-top-color: white;
             animation: spin 1s ease-in-out infinite;
         }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        /* Library Status Alert */
-        .library-alert {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--error);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            z-index: 1000;
-            max-width: 400px;
-            display: none;
-        }
-        
-        .library-alert.show {
-            display: block;
-            animation: slideIn 0.3s ease;
-        }
-        
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .content {
-                padding: 20px;
-            }
-            
-            .floor-item {
-                flex-wrap: wrap;
-            }
-            
-            .floor-actions {
-                width: 100%;
-                justify-content: flex-end;
-            }
-            
-            .header h1 {
-                font-size: 24px;
-            }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <!-- Library Loading Alert -->
-    <div class="library-alert" id="libraryAlert">
-        <strong>⚠️ Excel Library Not Loaded</strong>
-        <p style="margin-top: 8px; font-size: 14px;">This tool requires an internet connection to load the Excel processing library. Please check your connection and refresh the page.</p>
-    </div>
-    
     <div class="container">
-        <!-- Header -->
         <div class="header">
             <h1>BOMA Calculator</h1>
             <p>Convert Revit area exports to BOMA-compliant calculation spreadsheets</p>
         </div>
         
-        <!-- Progress Bar -->
-        <div class="progress-bar" style="padding: 30px 40px 0;">
-            <div class="progress-step active" id="progressStep1">
-                <div class="step-circle">1</div>
-                <div class="step-label">Upload</div>
-            </div>
-            <div class="progress-step" id="progressStep2">
-                <div class="step-circle">2</div>
-                <div class="step-label">Map Floors</div>
-            </div>
-            <div class="progress-step" id="progressStep3">
-                <div class="step-circle">3</div>
-                <div class="step-label">Generate</div>
-            </div>
-        </div>
-        
-        <!-- Main Content -->
         <div class="content">
-            <!-- Step 1: Upload File -->
-            <div class="step" id="step1">
+            <!-- Step 1: Upload -->
+            <div class="step">
                 <div class="step-header">
                     <div class="step-number">1</div>
                     <div class="step-title">Upload Revit Export</div>
                 </div>
-                
                 <div class="upload-zone" id="uploadZone">
                     <div class="upload-icon">📁</div>
-                    <div class="upload-text">Click to browse or drag and drop your file here</div>
-                    <div class="upload-hint">Supported formats: Excel (.xlsx, .xls) or CSV</div>
+                    <div class="upload-text">Click to browse or drag and drop</div>
+                    <div class="upload-hint" style="font-size: 14px; color: #666;">Excel (.xlsx, .xls) or CSV</div>
                 </div>
-                
                 <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
-                
                 <div class="file-info" id="fileInfo">
-                    <span class="file-icon">✓</span>
-                    <div class="file-details">
-                        <h3 id="fileName"></h3>
-                        <p id="fileDetails"></p>
+                    <span style="font-size: 32px; color: var(--success);">✓</span>
+                    <div>
+                        <h3 id="fileName" style="font-size: 16px; margin-bottom: 4px;"></h3>
+                        <p id="fileDetails" style="font-size: 14px; color: #666;"></p>
                     </div>
                 </div>
             </div>
@@ -685,67 +262,54 @@
                     <div class="step-number">2</div>
                     <div class="step-title">Map Building Floors</div>
                 </div>
-                
                 <div class="info-box">
-                    <p><strong>Floor Mapping Instructions:</strong> Assign Revit levels to building floor nomenclature. Floors are automatically sorted with roof at top, descending through numbered floors to ground, then basements below. <strong>Drag and drop</strong> any floor to reorder, or use arrows, add/remove buttons as needed.</p>
+                    <p><strong>Instructions:</strong> Floors auto-sorted (Roof → Floors → Ground → Basements). <strong>Drag-and-drop</strong> to reorder, or add/remove floors as needed.</p>
                 </div>
-                
-                <div class="stats-grid" id="statsGrid">
+                <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-value" id="totalLevels">0</div>
-                        <div class="stat-label">Revit Levels</div>
+                        <div style="font-size: 13px; color: #666;">REVIT LEVELS</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="totalRows">0</div>
-                        <div class="stat-label">Data Rows</div>
+                        <div style="font-size: 13px; color: #666;">DATA ROWS</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="totalFloors">0</div>
-                        <div class="stat-label">Mapped Floors</div>
+                        <div style="font-size: 13px; color: #666;">MAPPED FLOORS</div>
                     </div>
                 </div>
-                
-                <div class="mapping-controls">
-                    <button onclick="autoSortFloors()">
-                        <span>⇅</span> Auto-Sort (Top to Bottom)
+                <div style="margin-bottom: 20px;">
+                    <button class="btn" style="background: var(--hks-grey); color: white;" onclick="autoSortFloors()">
+                        <span>⇅</span> Auto-Sort
                     </button>
-                    <button onclick="resetMappings()">
-                        <span>↺</span> Reset to Original
+                    <button class="btn" style="background: white; color: var(--hks-dark); border: 1px solid var(--border);" onclick="resetMappings()">
+                        <span>↺</span> Reset
                     </button>
                 </div>
-                
-                <div class="mapping-container" id="mappingContainer">
-                    <!-- Floor mapping items will be inserted here -->
-                </div>
-                
+                <div class="mapping-container" id="mappingContainer"></div>
                 <div style="margin-top: 20px; text-align: right;">
                     <button class="btn btn-primary" onclick="proceedToGenerate()">
-                        Continue to Generate
-                        <span>→</span>
+                        Continue →
                     </button>
                 </div>
             </div>
             
-            <!-- Step 3: Generate Output -->
+            <!-- Step 3: Generate -->
             <div class="step hidden" id="step3">
                 <div class="step-header">
                     <div class="step-number">3</div>
                     <div class="step-title">Generate BOMA Spreadsheet</div>
                 </div>
-                
-                <div class="info-box warning">
-                    <p><strong>Ready to Generate:</strong> The Excel file will include all area data with BOMA calculations, formulas preserved, and your floor mappings applied. Click below to download.</p>
+                <div class="info-box" style="background: #fff3e0; border-left-color: var(--warning);">
+                    <p><strong>Ready:</strong> Excel file will include BOMA Method A & B calculations with formulas, plus your Revit data.</p>
                 </div>
-                
                 <button class="btn btn-success" id="generateBtn" onclick="generateExcel()">
-                    <span>📊</span>
-                    Generate Excel with Formulas
+                    <span>📊</span> Generate Excel with Formulas
                 </button>
-                
                 <div style="margin-top: 20px;">
-                    <button class="btn" style="background: var(--hks-grey); color: white;" onclick="goBackToMapping()">
-                        <span>←</span>
-                        Back to Floor Mapping
+                    <button class="btn" style="background: var(--hks-grey); color: white;" onclick="showStep(2)">
+                        ← Back
                     </button>
                 </div>
             </div>
@@ -753,14 +317,6 @@
     </div>
     
     <script>
-        // Check if XLSX library loaded
-        window.addEventListener('load', function() {
-            if (typeof XLSX === 'undefined') {
-                document.getElementById('libraryAlert').classList.add('show');
-                console.error('SheetJS library failed to load. Please check internet connection.');
-            }
-        });
-        
         // Global state
         let workbookData = null;
         let rawData = [];
@@ -768,627 +324,588 @@
         let floorMappings = [];
         let levelColumn = null;
         let originalMappings = [];
+        let draggedIndex = null;
         
         // DOM elements
         const uploadZone = document.getElementById('uploadZone');
         const fileInput = document.getElementById('fileInput');
-        const fileInfo = document.getElementById('fileInfo');
-        const fileName = document.getElementById('fileName');
-        const fileDetails = document.getElementById('fileDetails');
         const mappingContainer = document.getElementById('mappingContainer');
-        const generateBtn = document.getElementById('generateBtn');
         
-        // Step elements
-        const step1 = document.getElementById('step1');
-        const step2 = document.getElementById('step2');
-        const step3 = document.getElementById('step3');
-        const progressStep1 = document.getElementById('progressStep1');
-        const progressStep2 = document.getElementById('progressStep2');
-        const progressStep3 = document.getElementById('progressStep3');
-        
-        // File upload handlers
-        uploadZone.addEventListener('click', function() {
-            if (typeof XLSX === 'undefined') {
-                alert('Excel library not loaded. Please check your internet connection and refresh the page.');
-                return;
-            }
-            fileInput.click();
-        });
-        
-        uploadZone.addEventListener('dragover', function(e) {
+        // Upload handlers
+        uploadZone.addEventListener('click', () => fileInput.click());
+        uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.style.borderColor = 'var(--accent)'; });
+        uploadZone.addEventListener('dragleave', () => uploadZone.style.borderColor = '');
+        uploadZone.addEventListener('drop', e => {
             e.preventDefault();
-            uploadZone.classList.add('dragover');
+            uploadZone.style.borderColor = '';
+            if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
         });
+        fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
         
-        uploadZone.addEventListener('dragleave', function() {
-            uploadZone.classList.remove('dragover');
-        });
-        
-        uploadZone.addEventListener('drop', function(e) {
-            e.preventDefault();
-            uploadZone.classList.remove('dragover');
-            
-            if (typeof XLSX === 'undefined') {
-                alert('Excel library not loaded. Please check your internet connection and refresh the page.');
-                return;
-            }
-            
-            const file = e.dataTransfer.files[0];
-            if (file) handleFile(file);
-        });
-        
-        fileInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) handleFile(file);
-        });
-        
-        // Handle file upload
         function handleFile(file) {
-            const extension = file.name.split('.').pop().toLowerCase();
-            if (!['xlsx', 'xls', 'csv'].includes(extension)) {
-                alert('Please upload an Excel (.xlsx, .xls) or CSV file');
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!['xlsx', 'xls', 'csv'].includes(ext)) {
+                alert('Please upload Excel or CSV file');
                 return;
             }
             
             const reader = new FileReader();
-            
-            reader.onerror = function() {
-                alert('Error reading file. Please try again.');
-            };
-            
-            reader.onload = function(e) {
+            reader.onload = e => {
                 try {
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
-                    
                     workbookData = workbook;
                     
-                    // Get first sheet
                     const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                     const jsonData = XLSX.utils.sheet_to_json(firstSheet, { defval: '' });
                     
                     if (jsonData.length === 0) {
-                        alert('The file appears to be empty. Please check your data.');
+                        alert('File is empty');
                         return;
                     }
                     
                     rawData = jsonData;
-                    
-                    // Find Level column (case insensitive)
-                    levelColumn = Object.keys(jsonData[0]).find(function(key) {
-                        return key.toLowerCase().includes('level');
-                    });
+                    levelColumn = Object.keys(jsonData[0]).find(k => k.toLowerCase().includes('level'));
                     
                     if (!levelColumn) {
-                        alert('Could not find a "Level" column in the data.\n\nAvailable columns:\n' + 
-                              Object.keys(jsonData[0]).join(', ') + 
-                              '\n\nPlease ensure your file has a column with "Level" in the name.');
+                        alert('No "Level" column found');
                         return;
                     }
                     
-                    // Extract unique levels (filter out instance IDs and empty values)
+                    // Extract levels (FIXED: allow short names like "P3")
                     revitLevels = [];
-                    var seenLevels = {};
-                    jsonData.forEach(function(row) {
-                        var level = row[levelColumn];
-                        
-                        // Filter out invalid levels:
-                        // - Empty or null values
-                        // - Revit instance IDs (start with "(Instance)")
-                        // - Very short strings (< 3 characters)
-                        if (level && 
-                            typeof level === 'string' && 
-                            level.trim().length > 2 &&
-                            !level.startsWith('(Instance)') &&
-                            !seenLevels[level]) {
-                            seenLevels[level] = true;
+                    const seen = {};
+                    jsonData.forEach(row => {
+                        const level = row[levelColumn];
+                        if (level && typeof level === 'string' && level.trim().length > 0 &&
+                            !level.startsWith('(Instance)') && !seen[level]) {
+                            seen[level] = true;
                             revitLevels.push(level);
                         }
                     });
                     
                     if (revitLevels.length === 0) {
-                        alert('No valid levels found in the data.\n\nThe Level column exists but contains only:\n• Empty cells\n• Revit instance IDs like "(Instance) <-1007101>"\n\nPlease check that your export includes actual level names.');
+                        alert('No valid levels found');
                         return;
                     }
                     
-                    // Show file info
-                    fileName.textContent = file.name;
-                    fileDetails.textContent = revitLevels.length + ' unique levels • ' + jsonData.length + ' rows • Level column: "' + levelColumn + '"';
-                    fileInfo.classList.add('active');
-                    
-                    // Update stats
+                    document.getElementById('fileName').textContent = file.name;
+                    document.getElementById('fileDetails').textContent = `${revitLevels.length} levels • ${jsonData.length} rows`;
+                    document.getElementById('fileInfo').classList.add('active');
                     document.getElementById('totalLevels').textContent = revitLevels.length;
                     document.getElementById('totalRows').textContent = jsonData.length;
                     
-                    // Initialize floor mappings
                     initializeFloorMappings();
-                    
-                    // Show mapping step
                     showStep(2);
-                    
                 } catch (error) {
-                    alert('Error processing file: ' + error.message);
-                    console.error(error);
+                    alert('Error: ' + error.message);
                 }
             };
-            
             reader.readAsArrayBuffer(file);
         }
         
-        // Initialize floor mappings
         function initializeFloorMappings() {
-            floorMappings = revitLevels.map(function(level) {
-                return {
-                    revitLevel: level,
-                    buildingFloor: level,
-                    isNew: false
-                };
-            });
+            floorMappings = revitLevels.map(level => ({
+                revitLevel: level,
+                buildingFloor: level,
+                isNew: false
+            }));
             
-            // Auto-sort floors intelligently (Roof -> Floors -> Basements)
-            floorMappings.sort(function(a, b) {
-                return compareFloors(b.buildingFloor, a.buildingFloor);
-            });
-            
+            // Auto-sort on load
+            floorMappings.sort((a, b) => compareFloors(a.buildingFloor, b.buildingFloor));
             originalMappings = JSON.parse(JSON.stringify(floorMappings));
             renderFloorMappings();
         }
         
-        // Render floor mapping interface
-        function renderFloorMappings() {
-            mappingContainer.innerHTML = '';
+        function compareFloors(f1, f2) {
+            const info1 = analyzeFloor(f1);
+            const info2 = analyzeFloor(f2);
+            if (info1.category !== info2.category) return info1.category - info2.category;
+            if (info1.category === 3) return info2.number - info1.number; // Regular floors: high to low
+            return info1.number - info2.number; // Basements: B1, B2, B3...
+        }
+        
+        function analyzeFloor(name) {
+            const n = name.toUpperCase();
+            if (n.includes('ROOF')) return { category: 0, number: 0 };
+            if (n.includes('PENTHOUSE') || n.includes('MECHANICAL') || n.includes('MACHINE') || n.includes('PH'))
+                return { category: 1, number: 0 };
+            if (n.includes('GROUND') || n.includes('LOBBY') || n.includes('MAIN') || n === 'G' || n === 'L')
+                return { category: 4, number: 0 };
             
-            floorMappings.forEach(function(mapping, index) {
-                var floorItem = document.createElement('div');
-                floorItem.className = 'floor-item';
-                floorItem.draggable = true;
-                floorItem.dataset.index = index;
-                
-                var isFirst = index === 0;
-                var isLast = index === floorMappings.length - 1;
-                
-                floorItem.innerHTML = 
-                    '<div class="drag-handle" title="Drag to reorder">⋮⋮</div>' +
-                    '<div class="floor-controls">' +
-                        '<button class="control-btn" onclick="moveFloor(' + index + ', -1)" ' + (isFirst ? 'disabled' : '') + ' title="Move up">▲</button>' +
-                        '<button class="control-btn" onclick="moveFloor(' + index + ', 1)" ' + (isLast ? 'disabled' : '') + ' title="Move down">▼</button>' +
-                    '</div>' +
-                    '<div class="floor-label ' + (mapping.isNew ? 'new-level' : '') + '">' +
-                        (mapping.isNew ? '(New Level)' : mapping.revitLevel) +
-                    '</div>' +
-                    '<div class="arrow-icon">→</div>' +
-                    '<input ' +
-                        'type="text" ' +
-                        'class="floor-input" ' +
-                        'value="' + mapping.buildingFloor + '" ' +
-                        'onchange="updateFloorName(' + index + ', this.value)" ' +
-                        'placeholder="Enter building floor name (e.g., Roof, Level 5, Ground, B1)" ' +
-                    '>' +
-                    '<div class="floor-actions">' +
-                        '<button class="action-btn" onclick="addFloorAbove(' + index + ')">+ Above</button>' +
-                        '<button class="action-btn" onclick="addFloorBelow(' + index + ')">+ Below</button>' +
-                        '<button class="action-btn remove" onclick="removeFloor(' + index + ')">✕ Remove</button>' +
-                    '</div>';
-                
-                // Add drag event listeners
-                floorItem.addEventListener('dragstart', handleDragStart);
-                floorItem.addEventListener('dragover', handleDragOver);
-                floorItem.addEventListener('drop', handleDrop);
-                floorItem.addEventListener('dragend', handleDragEnd);
-                floorItem.addEventListener('dragleave', handleDragLeave);
-                
-                mappingContainer.appendChild(floorItem);
-            });
+            const bMatch = n.match(/B[-\s]?(\d+)/i);
+            if (bMatch) return { category: 5, number: parseInt(bMatch[1]) };
             
-            // Update total floors stat
-            document.getElementById('totalFloors').textContent = floorMappings.length;
-        }
-        
-        // Drag and Drop handlers
-        var draggedIndex = null;
-        
-        function handleDragStart(e) {
-            draggedIndex = parseInt(this.dataset.index);
-            this.classList.add('dragging');
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/html', this.innerHTML);
-        }
-        
-        function handleDragOver(e) {
-            if (e.preventDefault) {
-                e.preventDefault();
-            }
-            e.dataTransfer.dropEffect = 'move';
+            const fMatch = n.match(/(?:LEVEL|L|P|FLOOR)[-\s]?(\d+)/i) || n.match(/^(\d+)/);
+            if (fMatch) return { category: 3, number: parseInt(fMatch[1]) };
             
-            // Add visual indicator
-            var items = document.querySelectorAll('.floor-item');
-            items.forEach(function(item) {
-                item.classList.remove('drag-over');
-            });
-            this.classList.add('drag-over');
-            
-            return false;
-        }
-        
-        function handleDragLeave(e) {
-            this.classList.remove('drag-over');
-        }
-        
-        function handleDrop(e) {
-            if (e.stopPropagation) {
-                e.stopPropagation();
-            }
-            
-            var dropIndex = parseInt(this.dataset.index);
-            
-            if (draggedIndex !== null && draggedIndex !== dropIndex) {
-                // Reorder the array
-                var draggedItem = floorMappings[draggedIndex];
-                floorMappings.splice(draggedIndex, 1);
-                
-                // Adjust index if dragging down
-                if (draggedIndex < dropIndex) {
-                    dropIndex--;
-                }
-                
-                floorMappings.splice(dropIndex, 0, draggedItem);
-                renderFloorMappings();
-            }
-            
-            return false;
-        }
-        
-        function handleDragEnd(e) {
-            this.classList.remove('dragging');
-            
-            // Remove drag-over class from all items
-            var items = document.querySelectorAll('.floor-item');
-            items.forEach(function(item) {
-                item.classList.remove('drag-over');
-            });
-            
-            draggedIndex = null;
-        }
-        
-        // Floor mapping functions
-        function moveFloor(index, direction) {
-            var newIndex = index + direction;
-            if (newIndex >= 0 && newIndex < floorMappings.length) {
-                var temp = floorMappings[index];
-                floorMappings[index] = floorMappings[newIndex];
-                floorMappings[newIndex] = temp;
-                renderFloorMappings();
-            }
-        }
-        
-        function updateFloorName(index, newName) {
-            floorMappings[index].buildingFloor = newName.trim();
-        }
-        
-        function addFloorAbove(index) {
-            var newFloor = {
-                revitLevel: '(New Level)',
-                buildingFloor: '',
-                isNew: true
-            };
-            floorMappings.splice(index, 0, newFloor);
-            renderFloorMappings();
-        }
-        
-        function addFloorBelow(index) {
-            var newFloor = {
-                revitLevel: '(New Level)',
-                buildingFloor: '',
-                isNew: true
-            };
-            floorMappings.splice(index + 1, 0, newFloor);
-            renderFloorMappings();
-        }
-        
-        function removeFloor(index) {
-            if (confirm('Remove this floor mapping?\n\nNote: If this is a Revit level, its data will be excluded from the output.')) {
-                floorMappings.splice(index, 1);
-                renderFloorMappings();
-            }
+            return { category: 3, number: 0 };
         }
         
         function autoSortFloors() {
-            // Smart building floor sort - Roof at top, descending floors, then basements
-            floorMappings.sort(function(a, b) {
-                return compareFloors(b.buildingFloor, a.buildingFloor);
-            });
+            floorMappings.sort((a, b) => compareFloors(a.buildingFloor, b.buildingFloor));
             renderFloorMappings();
         }
         
-        function compareFloors(floor1, floor2) {
-            // Helper function to determine floor hierarchy
-            var f1 = analyzeFloor(floor1);
-            var f2 = analyzeFloor(floor2);
-            
-            // First sort by category (roof > penthouse > floors > ground > basement)
-            if (f1.category !== f2.category) {
-                return f1.category - f2.category;
-            }
-            
-            // Within same category, sort by number
-            // For regular floors (category 3), higher numbers first (descending)
-            // For basements (category 5), lower numbers first (B1, B2, B3... descending into ground)
-            if (f1.category === 3) {
-                return f2.number - f1.number; // Reverse for regular floors
-            } else {
-                return f1.number - f2.number; // Normal for basements
-            }
-        }
-        
-        function analyzeFloor(floorName) {
-            var name = floorName.toUpperCase();
-            var number = 0;
-            var category = 3; // Default to regular floor
-            
-            // Roof - highest priority (category 0)
-            if (name.includes('ROOF')) {
-                category = 0;
-                return { category: category, number: 0 };
-            }
-            
-            // Penthouse / Mechanical / Machine Room (category 1)
-            if (name.includes('PENTHOUSE') || name.includes('MECHANICAL') || 
-                name.includes('MACHINE') || name.includes('PH')) {
-                category = 1;
-                return { category: category, number: 0 };
-            }
-            
-            // Ground floor (category 4)
-            if (name.includes('GROUND') || name.includes('LOBBY') || 
-                name.includes('MAIN') || name === 'G' || name === 'L') {
-                category = 4;
-                return { category: category, number: 0 };
-            }
-            
-            // Basement levels (category 5)
-            var basementMatch = name.match(/B[-\s]?(\d+)/i) || name.match(/BASEMENT[-\s]?(\d+)/i);
-            if (basementMatch) {
-                category = 5;
-                number = parseInt(basementMatch[1]) || 1;
-                return { category: category, number: number };
-            }
-            
-            // Regular numbered floors (category 3)
-            // Match patterns like: LEVEL 01, L01, LEVEL 4, P2, etc.
-            var floorMatch = name.match(/(?:LEVEL|L|P|FLOOR)[-\s]?(\d+)/i) || name.match(/^(\d+)/);
-            if (floorMatch) {
-                category = 3;
-                number = parseInt(floorMatch[1]) || 0;
-                return { category: category, number: number };
-            }
-            
-            // If no pattern matches, treat as regular floor with 0
-            return { category: category, number: 0 };
-        }
-        
         function resetMappings() {
-            if (confirm('Reset all floor mappings to original?\n\nThis will undo all changes.')) {
+            if (confirm('Reset all changes?')) {
                 floorMappings = JSON.parse(JSON.stringify(originalMappings));
                 renderFloorMappings();
             }
         }
         
-        // Navigation
-        function showStep(stepNum) {
-            // Hide all steps
-            step1.classList.add('hidden');
-            step2.classList.add('hidden');
-            step3.classList.add('hidden');
+        function renderFloorMappings() {
+            mappingContainer.innerHTML = '';
+            floorMappings.forEach((m, i) => {
+                const div = document.createElement('div');
+                div.className = 'floor-item';
+                div.draggable = true;
+                div.dataset.index = i;
+                
+                div.innerHTML = `
+                    <div class="drag-handle">⋮⋮</div>
+                    <div class="floor-label">${m.isNew ? '(New)' : m.revitLevel}</div>
+                    <div style="font-size: 24px; color: var(--hks-grey);">→</div>
+                    <input type="text" class="floor-input" value="${m.buildingFloor}"
+                           onchange="updateFloorName(${i}, this.value)"
+                           placeholder="Floor name">
+                    <div class="floor-actions">
+                        <button class="action-btn" onclick="addFloorAbove(${i})">+ Above</button>
+                        <button class="action-btn" onclick="addFloorBelow(${i})">+ Below</button>
+                        <button class="action-btn remove" onclick="removeFloor(${i})">✕</button>
+                    </div>
+                `;
+                
+                div.addEventListener('dragstart', handleDragStart);
+                div.addEventListener('dragover', handleDragOver);
+                div.addEventListener('drop', handleDrop);
+                div.addEventListener('dragend', handleDragEnd);
+                
+                mappingContainer.appendChild(div);
+            });
             
-            // Reset progress
-            progressStep1.classList.remove('active', 'completed');
-            progressStep2.classList.remove('active', 'completed');
-            progressStep3.classList.remove('active', 'completed');
+            document.getElementById('totalFloors').textContent = floorMappings.length;
+        }
+        
+        function handleDragStart(e) {
+            draggedIndex = parseInt(this.dataset.index);
+            this.classList.add('dragging');
+        }
+        
+        function handleDragOver(e) {
+            e.preventDefault();
+            document.querySelectorAll('.floor-item').forEach(el => el.classList.remove('drag-over'));
+            this.classList.add('drag-over');
+        }
+        
+        function handleDrop(e) {
+            e.preventDefault();
+            const dropIndex = parseInt(this.dataset.index);
+            if (draggedIndex !== null && draggedIndex !== dropIndex) {
+                const item = floorMappings[draggedIndex];
+                floorMappings.splice(draggedIndex, 1);
+                floorMappings.splice(draggedIndex < dropIndex ? dropIndex - 1 : dropIndex, 0, item);
+                renderFloorMappings();
+            }
+        }
+        
+        function handleDragEnd() {
+            this.classList.remove('dragging');
+            document.querySelectorAll('.floor-item').forEach(el => el.classList.remove('drag-over'));
+            draggedIndex = null;
+        }
+        
+        function updateFloorName(i, v) { floorMappings[i].buildingFloor = v.trim(); }
+        
+        function addFloorAbove(i) {
+            const nextName = getNextFloorName(floorMappings[i].buildingFloor, 'above');
+            floorMappings.splice(i, 0, { revitLevel: '(New)', buildingFloor: nextName, isNew: true });
+            renderFloorMappings();
+        }
+        
+        function addFloorBelow(i) {
+            const nextName = getNextFloorName(floorMappings[i].buildingFloor, 'below');
+            floorMappings.splice(i + 1, 0, { revitLevel: '(New)', buildingFloor: nextName, isNew: true });
+            renderFloorMappings();
+        }
+        
+        function getNextFloorName(currentName, direction) {
+            const num = currentName.match(/\d+/);
+            if (!num) return currentName + ' (Copy)';
             
-            // Show current step
-            if (stepNum === 1) {
-                step1.classList.remove('hidden');
-                progressStep1.classList.add('active');
-            } else if (stepNum === 2) {
-                step2.classList.remove('hidden');
-                progressStep1.classList.add('completed');
-                progressStep2.classList.add('active');
-            } else if (stepNum === 3) {
-                step3.classList.remove('hidden');
-                progressStep1.classList.add('completed');
-                progressStep2.classList.add('completed');
-                progressStep3.classList.add('active');
+            const n = parseInt(num[0]);
+            const prefix = currentName.substring(0, currentName.indexOf(num[0]));
+            const suffix = currentName.substring(currentName.indexOf(num[0]) + num[0].length);
+            
+            const isBasement = currentName.toUpperCase().includes('B');
+            let newNum;
+            
+            if (isBasement) {
+                newNum = direction === 'above' ? n - 1 : n + 1;
+            } else {
+                newNum = direction === 'above' ? n + 1 : n - 1;
             }
             
-            // Scroll to top
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return newNum > 0 ? prefix + newNum + suffix : currentName + ' (Copy)';
+        }
+        
+        function removeFloor(i) {
+            if (confirm('Remove this floor?')) {
+                floorMappings.splice(i, 1);
+                renderFloorMappings();
+            }
+        }
+        
+        function showStep(n) {
+            document.querySelectorAll('.step').forEach(el => el.classList.add('hidden'));
+            document.getElementById(n === 2 ? 'step2' : 'step3').classList.remove('hidden');
         }
         
         function proceedToGenerate() {
-            // Validate all floors have names
-            var emptyFloors = floorMappings.filter(function(m) {
-                return !m.buildingFloor.trim();
-            });
-            
-            if (emptyFloors.length > 0) {
-                alert('Please provide names for all ' + emptyFloors.length + ' floor(s) before continuing.');
+            const empty = floorMappings.filter(m => !m.buildingFloor.trim());
+            if (empty.length > 0) {
+                alert(`Please name all ${empty.length} floor(s)`);
                 return;
             }
-            
             showStep(3);
         }
         
-        function goBackToMapping() {
-            showStep(2);
-        }
-        
-        // Generate Excel output with BOMA formulas
         function generateExcel() {
             try {
                 generateBtn.disabled = true;
                 generateBtn.innerHTML = '<span class="spinner"></span> Generating...';
                 
-                // Create mapping lookup
-                var mappingLookup = {};
-                floorMappings.forEach(function(m) {
-                    if (!m.isNew) {
-                        mappingLookup[m.revitLevel] = m.buildingFloor;
-                    }
+                // Create floor mapping lookup
+                const mappingLookup = {};
+                floorMappings.forEach(m => {
+                    if (!m.isNew) mappingLookup[m.revitLevel] = m.buildingFloor;
                 });
                 
-                // Process data with floor mappings (filter out invalid levels)
-                var mappedData = rawData
-                    .filter(function(row) {
-                        var level = row[levelColumn];
-                        // Filter out rows with invalid levels
-                        return level && 
-                               typeof level === 'string' && 
-                               level.trim().length > 2 &&
-                               !level.startsWith('(Instance)') &&
-                               mappingLookup[level];
-                    })
-                    .map(function(row) {
-                        var newRow = { 'Building Floor': mappingLookup[row[levelColumn]] };
-                        for (var key in row) {
-                            newRow[key] = row[key];
-                        }
-                        return newRow;
-                    });
+                // Process and map data
+                const mappedData = rawData.filter(row => {
+                    const level = row[levelColumn];
+                    return level && typeof level === 'string' && level.trim().length > 0 &&
+                           !level.startsWith('(Instance)') && mappingLookup[level];
+                }).map(row => ({
+                    FloorMap: mappingLookup[row[levelColumn]],
+                    Name: row.Name || '',
+                    'Area Scheme Name': row['Area Scheme Name'] || '',
+                    Area: parseFloat(row.Area) || 0
+                }));
                 
                 if (mappedData.length === 0) {
-                    alert('No data to export. Please check your floor mappings.');
+                    alert('No data to export');
                     generateBtn.disabled = false;
                     generateBtn.innerHTML = '<span>📊</span> Generate Excel with Formulas';
                     return;
                 }
                 
                 // Create new workbook
-                var wb = XLSX.utils.book_new();
+                const wb = XLSX.utils.book_new();
                 
-                // Create worksheet from data
-                var ws = XLSX.utils.json_to_sheet(mappedData);
+                // Get unique floors in sorted order
+                const uniqueFloors = [...new Set(mappedData.map(r => r.FloorMap))];
+                const sortedFloors = uniqueFloors.sort((a, b) => compareFloors(a, b));
                 
-                // Add BOMA calculations
-                addBOMAFormulas(ws, mappedData);
+                // Create BOMA-B Sheet
+                createBOMAMethodB(wb, sortedFloors);
                 
-                // Add worksheet to workbook
-                XLSX.utils.book_append_sheet(wb, ws, 'BOMA Calculations');
+                // Create BOMA-A Sheet
+                createBOMAMethodA(wb, sortedFloors);
                 
-                // Create summary sheet
-                var summaryWs = createSummarySheet(mappedData);
-                XLSX.utils.book_append_sheet(wb, summaryWs, 'Summary');
+                // Create Revit Data Sheet
+                const wsData = XLSX.utils.json_to_sheet(mappedData);
+                XLSX.utils.book_append_sheet(wb, wsData, 'Revit Data');
                 
-                // Generate file
-                var timestamp = new Date().toISOString().split('T')[0];
-                var filename = 'BOMA_Calculations_' + timestamp + '.xlsx';
-                
-                XLSX.writeFile(wb, filename, { 
+                // Download
+                const timestamp = new Date().toISOString().split('T')[0];
+                XLSX.writeFile(wb, `BOMA_Calculations_${timestamp}.xlsx`, { 
                     bookType: 'xlsx', 
-                    cellFormula: true,
-                    type: 'binary'
+                    cellFormula: true 
                 });
                 
-                // Success message
-                alert('✓ Excel file generated successfully!\n\nFile: ' + filename + '\n\nThe file includes:\n• All area data with floor mappings\n• BOMA calculation formulas\n• Summary sheet with totals');
+                alert('✓ BOMA Excel generated successfully!\n\n' +
+                      'Includes:\n' +
+                      '• HKS-BOMA-B (Method B)\n' +
+                      '• HKS-BOMA-A (Method A)\n' +
+                      '• Revit Data\n' +
+                      'All with formulas preserved!');
                 
                 generateBtn.disabled = false;
                 generateBtn.innerHTML = '<span>📊</span> Generate Excel with Formulas';
-                
             } catch (error) {
-                alert('Error generating Excel file: ' + error.message);
                 console.error(error);
+                alert('Error: ' + error.message);
                 generateBtn.disabled = false;
                 generateBtn.innerHTML = '<span>📊</span> Generate Excel with Formulas';
             }
         }
         
-        // Add BOMA formulas to worksheet
-        function addBOMAFormulas(ws, data) {
-            var lastRow = data.length + 1; // +1 for header
-            
-            // Find area column (case insensitive search)
-            var headers = Object.keys(data[0]);
-            var areaColumn = headers.find(function(h) {
-                return h.toLowerCase().includes('area') || h.toLowerCase().includes('sf');
+        function createBOMAMethodB(wb, floors) {
+            const ws = {};
+            const dateStr = new Date().toLocaleDateString('en-US', { 
+                year: 'numeric', month: 'long', day: 'numeric' 
             });
             
-            if (!areaColumn) return;
+            // Header rows
+            ws['A1'] = { t: 's', v: 'Project Name' };
+            ws['J1'] = { t: 's', v: 'Preliminary Global Summary Of Areas' };
             
-            // Get column letter for area column
-            var areaColIndex = headers.indexOf(areaColumn);
-            var areaColLetter = XLSX.utils.encode_col(areaColIndex + 1); // +1 because 'Building Floor' is first
+            ws['A2'] = { t: 's', v: 'City, State' };
+            ws['J2'] = { t: 's', v: dateStr };
+            ws['K2'] = { t: 's', v: 'Per BOMA/ANSI Z65.1 2024-Method B (Modified HKS)' };
             
-            // Add total row
-            var totalRowNum = lastRow + 2;
+            ws['A3'] = { t: 's', v: 'HKS Project# 00000.000' };
             
-            // Add "TOTAL" label
-            ws['A' + totalRowNum] = { t: 's', v: 'TOTAL' };
+            // Column headers row 4
+            const headers4 = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
+            headers4.forEach((h, i) => {
+                ws[h + '4'] = { t: 's', v: h };
+            });
             
-            // Add SUM formula for area
-            var sumFormula = 'SUM(' + areaColLetter + '2:' + areaColLetter + lastRow + ')';
-            ws[areaColLetter + totalRowNum] = { t: 'n', f: sumFormula };
+            // Row 5 - Input/Formula labels
+            ws['A5'] = { t: 's', v: 'Input' };
+            ws['B5'] = { t: 's', v: 'Input' };
+            ws['C5'] = { t: 's', v: 'Input' };
+            ws['D5'] = { t: 's', v: 'B-C' };
+            ws['E5'] = { t: 's', v: 'Input' };
+            ws['F5'] = { t: 's', v: 'D-E' };
+            ws['G5'] = { t: 's', v: 'Input' };
+            ws['H5'] = { t: 's', v: 'Input' };
+            ws['I5'] = { t: 's', v: '(ΣF-ΣG)/ΣH' };
+            ws['J5'] = { t: 's', v: 'G+(H*I)' };
+            ws['K5'] = { t: 's', v: 'Calculation' };
             
-            // Update range to include formulas
-            var range = XLSX.utils.decode_range(ws['!ref']);
-            range.e.r = totalRowNum - 1;
-            ws['!ref'] = XLSX.utils.encode_range(range);
+            // Row 6 - Abbreviations
+            ws['A6'] = { t: 's', v: 'PA' };
+            ws['B6'] = { t: 's', v: 'MVP' };
+            ws['C6'] = { t: 's', v: 'TA-BALC' };
+            ws['D6'] = { t: 's', v: 'TA' };
+            ws['K6'] = { t: 's', v: 'Area Plan Abbreviations & Wall Priorities' };
+            
+            // Row 7 - Descriptions
+            ws['A7'] = { t: 's', v: '(Parking)' };
+            ws['B7'] = { t: 's', v: 'GSF' };
+            ws['C7'] = { t: 's', v: 'Stairs, Shafts, & Elevators' };
+            ws['D7'] = { t: 's', v: 'GSF-MVP (No Load Factor)' };
+            ws['E7'] = { t: 's', v: 'Unenclosed Tenant Areas (Balconies), Tenant Storage/Lockers' };
+            ws['F7'] = { t: 's', v: 'Tenant Area (AKA Occupant Areas)' };
+            ws['K7'] = { t: 's', v: 'Explanation / Definitions' };
+            
+            // Row 8 - Column headers
+            ws['A8'] = { t: 's', v: 'Floor Level' };
+            ws['B8'] = { t: 's', v: 'Boundary Areas (Overall)' };
+            ws['C8'] = { t: 's', v: 'Boundary Area Exclusions' };
+            ws['D8'] = { t: 's', v: 'Boundary Areas (Office)' };
+            ws['E8'] = { t: 's', v: 'Major Vertical Penetrations' };
+            ws['F8'] = { t: 's', v: 'Floor Rentable Area' };
+            ws['G8'] = { t: 's', v: 'Non-Allocated Tenant Areas (Balconies)' };
+            ws['H8'] = { t: 's', v: 'Tenant / Occupant Useable Areas' };
+            ws['I8'] = { t: 's', v: 'Load Factor B' };
+            ws['J8'] = { t: 's', v: 'Rentable Area' };
+            ws['K8'] = { t: 's', v: 'BOMA 2024 Space Classifications' };
+            
+            // Data rows starting at row 9
+            const startRow = 9;
+            floors.forEach((floor, idx) => {
+                const row = startRow + idx;
+                const rowStr = row.toString();
+                
+                // Column A - Floor name
+                ws['A' + rowStr] = { t: 's', v: floor };
+                
+                // Column B - Boundary Areas (SUMIF total area by floor)
+                ws['B' + rowStr] = { 
+                    t: 'n', 
+                    f: `SUMIF('Revit Data'!$A:$A,$A${rowStr},'Revit Data'!$D:$D)` 
+                };
+                
+                // Column C - PA (Parking)
+                ws['C' + rowStr] = { 
+                    t: 'n', 
+                    f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,$A${rowStr},'Revit Data'!$B:$B,"PA")` 
+                };
+                
+                // Column D - B - C
+                ws['D' + rowStr] = { t: 'n', f: `B${rowStr}-C${rowStr}` };
+                
+                // Column E - MVP (Major Vertical Penetrations)
+                ws['E' + rowStr] = { 
+                    t: 'n', 
+                    f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,$A${rowStr},'Revit Data'!$B:$B,"MVP")` 
+                };
+                
+                // Column F - D - E
+                ws['F' + rowStr] = { t: 'n', f: `D${rowStr}-E${rowStr}` };
+                
+                // Column G - TA-BALC
+                ws['G' + rowStr] = { 
+                    t: 'n', 
+                    f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,$A${rowStr},'Revit Data'!$B:$B,"TA-BALC")` 
+                };
+                
+                // Column H - TA (Tenant Area)
+                ws['H' + rowStr] = { 
+                    t: 'n', 
+                    f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,$A${rowStr},'Revit Data'!$B:$B,"TA")` 
+                };
+                
+                // Column I - Load Factor B (calculated at subtotal)
+                ws['I' + rowStr] = { 
+                    t: 'n', 
+                    f: `IF($H$${startRow + floors.length + 1}=0,0,($F$${startRow + floors.length + 1}-$G$${startRow + floors.length + 1})/$H$${startRow + floors.length + 1})` 
+                };
+                
+                // Column J - Rentable Area
+                ws['J' + rowStr] = { t: 'n', f: `G${rowStr}+(H${rowStr}*I${rowStr})` };
+            });
+            
+            // Subtotal row
+            const subRow = startRow + floors.length;
+            const lastDataRow = subRow - 1;
+            
+            ws['A' + subRow] = { t: 's', v: 'SubTotal' };
+            ws['B' + subRow] = { t: 'n', f: `SUM(B${startRow}:B${lastDataRow})` };
+            ws['C' + subRow] = { t: 'n', f: `SUM(C${startRow}:C${lastDataRow})` };
+            ws['D' + subRow] = { t: 'n', f: `SUM(D${startRow}:D${lastDataRow})` };
+            ws['E' + subRow] = { t: 'n', f: `SUM(E${startRow}:E${lastDataRow})` };
+            ws['F' + subRow] = { t: 'n', f: `SUM(F${startRow}:F${lastDataRow})` };
+            ws['G' + subRow] = { t: 'n', f: `SUM(G${startRow}:G${lastDataRow})` };
+            ws['H' + subRow] = { t: 'n', f: `SUM(H${startRow}:H${lastDataRow})` };
+            ws['I' + subRow] = { t: 'n', f: `IF(H${subRow}=0,0,(F${subRow}-G${subRow})/H${subRow})` };
+            ws['J' + subRow] = { t: 'n', f: `SUM(J${startRow}:J${lastDataRow})` };
+            
+            // Set range
+            ws['!ref'] = `A1:K${subRow}`;
+            
+            XLSX.utils.book_append_sheet(wb, ws, 'HKS-BOMA-B');
         }
         
-        // Create summary sheet
-        function createSummarySheet(data) {
-            var summary = [];
-            
-            // Group by building floor
-            var floorGroups = {};
-            data.forEach(function(row) {
-                var floor = row['Building Floor'];
-                if (!floorGroups[floor]) {
-                    floorGroups[floor] = [];
-                }
-                floorGroups[floor].push(row);
+        function createBOMAMethodA(wb, floors) {
+            const ws = {};
+            const dateStr = new Date().toLocaleDateString('en-US', { 
+                year: 'numeric', month: 'long', day: 'numeric' 
             });
             
-            // Create summary rows
-            Object.keys(floorGroups).forEach(function(floor) {
-                var rows = floorGroups[floor];
-                
-                // Find area column
-                var areaColumn = Object.keys(rows[0]).find(function(h) {
-                    return h.toLowerCase().includes('area') || h.toLowerCase().includes('sf');
-                });
-                
-                var totalArea = 0;
-                if (areaColumn) {
-                    rows.forEach(function(row) {
-                        var val = parseFloat(row[areaColumn]) || 0;
-                        totalArea += val;
-                    });
-                }
-                
-                summary.push({
-                    'Building Floor': floor,
-                    'Number of Spaces': rows.length,
-                    'Total Area (SF)': totalArea
-                });
+            // Header rows (similar to Method B)
+            ws['A1'] = { t: 's', v: 'Project Name' };
+            ws['O1'] = { t: 's', v: 'Preliminary Global Summary Of Areas' };
+            
+            ws['A2'] = { t: 's', v: 'City, State' };
+            ws['O2'] = { t: 's', v: dateStr };
+            ws['P2'] = { t: 's', v: 'Per BOMA/ANSI Z65.1 2024-Method A (Modified HKS)' };
+            
+            ws['A3'] = { t: 's', v: 'HKS Project# 00000.000' };
+            
+            // Column headers row 4
+            const headers4 = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P'];
+            headers4.forEach(h => {
+                ws[h + '4'] = { t: 's', v: h };
             });
             
-            // Create worksheet
-            var ws = XLSX.utils.json_to_sheet(summary);
+            // Row 5 - Input/Formula labels
+            ws['A5'] = { t: 's', v: 'Input' };
+            ws['B5'] = { t: 's', v: 'Input' };
+            ws['C5'] = { t: 's', v: 'Input' };
+            ws['D5'] = { t: 's', v: 'B-C' };
+            ws['E5'] = { t: 's', v: 'Input' };
+            ws['F5'] = { t: 's', v: 'D-E' };
+            ws['G5'] = { t: 's', v: 'Input' };
+            ws['H5'] = { t: 's', v: 'Input' };
+            ws['I5'] = { t: 's', v: 'Input' };
+            ws['J5'] = { t: 's', v: 'Input' };
+            ws['K5'] = { t: 's', v: '(H+J)/H' };
+            ws['L5'] = { t: 's', v: 'H*K' };
+            ws['M5'] = { t: 's', v: '(ΣF-ΣG)/(ΣF-ΣG-ΣI)' };
+            ws['N5'] = { t: 's', v: 'G+(L*M)' };
+            ws['O5'] = { t: 's', v: 'N/H' };
+            ws['P5'] = { t: 's', v: 'Calculation' };
             
-            // Add grand total formula
-            var lastRow = summary.length + 1;
-            var totalRow = lastRow + 1;
+            // Row 6 - Abbreviations
+            ws['A6'] = { t: 's', v: 'PA' };
+            ws['B6'] = { t: 's', v: 'MVP' };
+            ws['C6'] = { t: 's', v: 'TA-BALC' };
+            ws['D6'] = { t: 's', v: 'TA' };
+            ws['E6'] = { t: 's', v: 'BSA' };
+            ws['F6'] = { t: 's', v: 'FSA' };
+            ws['P6'] = { t: 's', v: 'Area Plan Abbreviations & Wall Priorities' };
             
-            ws['A' + totalRow] = { t: 's', v: 'GRAND TOTAL' };
-            ws['B' + totalRow] = { t: 'n', f: 'SUM(B2:B' + lastRow + ')' };
-            ws['C' + totalRow] = { t: 'n', f: 'SUM(C2:C' + lastRow + ')' };
+            // Row 7
+            ws['A7'] = { t: 's', v: '(Parking)' };
+            ws['B7'] = { t: 's', v: 'GSF' };
+            ws['C7'] = { t: 's', v: 'Stairs, Shafts, & Elevators' };
+            ws['D7'] = { t: 's', v: 'GSF-MVP (No Load Factor)' };
+            ws['E7'] = { t: 's', v: 'Unenclosed Tenant Areas (Balconies), Tenant Storage/Lockers' };
+            ws['F7'] = { t: 's', v: 'Tenant Area (AKA Occupant Areas)' };
+            ws['G7'] = { t: 's', v: 'BSA-DECK' };
+            ws['H7'] = { t: 's', v: 'BBC' };
+            ws['P7'] = { t: 's', v: 'Explanation / Definitions' };
             
-            // Update range
-            var range = XLSX.utils.decode_range(ws['!ref']);
-            range.e.r = totalRow - 1;
-            ws['!ref'] = XLSX.utils.encode_range(range);
+            // Row 8 - Column headers
+            ws['A8'] = { t: 's', v: 'Floor Level' };
+            ws['B8'] = { t: 's', v: 'Boundary Areas (Overall)' };
+            ws['C8'] = { t: 's', v: 'Boundary Area Exclusions' };
+            ws['D8'] = { t: 's', v: 'Boundary Areas (Office)' };
+            ws['E8'] = { t: 's', v: 'Major Vertical Penetrations' };
+            ws['F8'] = { t: 's', v: 'Floor Rentable Area' };
+            ws['G8'] = { t: 's', v: 'Non-Allocated Tenant Areas (Balconies)' };
+            ws['H8'] = { t: 's', v: 'Occupant Useable Areas' };
+            ws['I8'] = { t: 's', v: 'Building Service Areas' };
+            ws['J8'] = { t: 's', v: 'Floor Service Area' };
+            ws['K8'] = { t: 's', v: 'Floor Allocation Ratio' };
+            ws['L8'] = { t: 's', v: 'Floor Allocation' };
+            ws['M8'] = { t: 's', v: 'Building Allocation Ratio' };
+            ws['N8'] = { t: 's', v: 'Rentable Area' };
+            ws['O8'] = { t: 's', v: 'Load Factor A' };
+            ws['P8'] = { t: 's', v: 'BOMA 2024 Space Classifications' };
             
-            return ws;
+            // Data rows
+            const startRow = 9;
+            floors.forEach((floor, idx) => {
+                const row = startRow + idx;
+                const rowStr = row.toString();
+                const subRowRef = (startRow + floors.length + 1).toString();
+                
+                ws['A' + rowStr] = { t: 's', v: floor };
+                ws['B' + rowStr] = { t: 'n', f: `SUMIF('Revit Data'!$A:$A,$A${rowStr},'Revit Data'!$D:$D)` };
+                ws['C' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,$A${rowStr},'Revit Data'!$B:$B,"PA")` };
+                ws['D' + rowStr] = { t: 'n', f: `B${rowStr}-C${rowStr}` };
+                ws['E' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,$A${rowStr},'Revit Data'!$B:$B,"MVP")` };
+                ws['F' + rowStr] = { t: 'n', f: `D${rowStr}-E${rowStr}` };
+                ws['G' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,$A${rowStr},'Revit Data'!$B:$B,"TA-BALC")` };
+                ws['H' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,$A${rowStr},'Revit Data'!$B:$B,"TA")` };
+                ws['I' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,$A${rowStr},'Revit Data'!$B:$B,"BSA")` };
+                ws['J' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,$A${rowStr},'Revit Data'!$B:$B,"FSA")+SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,$A${rowStr},'Revit Data'!$B:$B,"BBC")` };
+                ws['K' + rowStr] = { t: 'n', f: `IF(H${rowStr}=0,0,(H${rowStr}+J${rowStr})/H${rowStr})` };
+                ws['L' + rowStr] = { t: 'n', f: `H${rowStr}*K${rowStr}` };
+                ws['M' + rowStr] = { t: 'n', f: `IF(($F$${subRowRef}-$G$${subRowRef}-$I$${subRowRef})=0,0,($F$${subRowRef}-$G$${subRowRef})/($F$${subRowRef}-$G$${subRowRef}-$I$${subRowRef}))` };
+                ws['N' + rowStr] = { t: 'n', f: `G${rowStr}+(L${rowStr}*M${rowStr})` };
+                ws['O' + rowStr] = { t: 'n', f: `IF(H${rowStr}=0,0,N${rowStr}/H${rowStr})` };
+            });
+            
+            // Subtotal row
+            const subRow = startRow + floors.length;
+            const lastDataRow = subRow - 1;
+            
+            ws['A' + subRow] = { t: 's', v: 'SubTotal' };
+            ws['B' + subRow] = { t: 'n', f: `SUM(B${startRow}:B${lastDataRow})` };
+            ws['C' + subRow] = { t: 'n', f: `SUM(C${startRow}:C${lastDataRow})` };
+            ws['D' + subRow] = { t: 'n', f: `SUM(D${startRow}:D${lastDataRow})` };
+            ws['E' + subRow] = { t: 'n', f: `SUM(E${startRow}:E${lastDataRow})` };
+            ws['F' + subRow] = { t: 'n', f: `SUM(F${startRow}:F${lastDataRow})` };
+            ws['G' + subRow] = { t: 'n', f: `SUM(G${startRow}:G${lastDataRow})` };
+            ws['H' + subRow] = { t: 'n', f: `SUM(H${startRow}:H${lastDataRow})` };
+            ws['I' + subRow] = { t: 'n', f: `SUM(I${startRow}:I${lastDataRow})` };
+            ws['J' + subRow] = { t: 'n', f: `SUM(J${startRow}:J${lastDataRow})` };
+            ws['K' + subRow] = { t: 'n', f: `IF(H${subRow}=0,0,(H${subRow}+J${subRow})/H${subRow})` };
+            ws['L' + subRow] = { t: 'n', f: `SUM(L${startRow}:L${lastDataRow})` };
+            ws['M' + subRow] = { t: 'n', f: `IF((F${subRow}-G${subRow}-I${subRow})=0,0,(F${subRow}-G${subRow})/(F${subRow}-G${subRow}-I${subRow}))` };
+            ws['N' + subRow] = { t: 'n', f: `SUM(N${startRow}:N${lastDataRow})` };
+            ws['O' + subRow] = { t: 'n', f: `IF(H${subRow}=0,0,N${subRow}/H${subRow})` };
+            
+            ws['!ref'] = `A1:P${subRow}`;
+            
+            XLSX.utils.book_append_sheet(wb, ws, 'HKS-BOMA-A');
         }
     </script>
 </body>
