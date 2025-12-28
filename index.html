@@ -843,16 +843,30 @@
                         return;
                     }
                     
-                    // Extract unique levels
+                    // Extract unique levels (filter out instance IDs and empty values)
                     revitLevels = [];
                     var seenLevels = {};
                     jsonData.forEach(function(row) {
                         var level = row[levelColumn];
-                        if (level && !seenLevels[level]) {
+                        
+                        // Filter out invalid levels:
+                        // - Empty or null values
+                        // - Revit instance IDs (start with "(Instance)")
+                        // - Very short strings (< 3 characters)
+                        if (level && 
+                            typeof level === 'string' && 
+                            level.trim().length > 2 &&
+                            !level.startsWith('(Instance)') &&
+                            !seenLevels[level]) {
                             seenLevels[level] = true;
                             revitLevels.push(level);
                         }
                     });
+                    
+                    if (revitLevels.length === 0) {
+                        alert('No valid levels found in the data.\n\nThe Level column exists but contains only:\n• Empty cells\n• Revit instance IDs like "(Instance) <-1007101>"\n\nPlease check that your export includes actual level names.');
+                        return;
+                    }
                     
                     // Show file info
                     fileName.textContent = file.name;
@@ -1051,10 +1065,16 @@
                     }
                 });
                 
-                // Process data with floor mappings
+                // Process data with floor mappings (filter out invalid levels)
                 var mappedData = rawData
                     .filter(function(row) {
-                        return mappingLookup[row[levelColumn]];
+                        var level = row[levelColumn];
+                        // Filter out rows with invalid levels
+                        return level && 
+                               typeof level === 'string' && 
+                               level.trim().length > 2 &&
+                               !level.startsWith('(Instance)') &&
+                               mappingLookup[level];
                     })
                     .map(function(row) {
                         var newRow = { 'Building Floor': mappingLookup[row[levelColumn]] };
