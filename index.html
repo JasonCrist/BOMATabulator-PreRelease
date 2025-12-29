@@ -225,6 +225,88 @@
             animation: spin 1s ease-in-out infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* Project Info Styles */
+        .project-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .project-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .project-field label {
+            font-weight: 500;
+            color: var(--hks-dark);
+            font-size: 14px;
+        }
+        .project-field input {
+            padding: 12px 15px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            font-size: 15px;
+            font-family: Arial, sans-serif;
+        }
+        .project-field input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .project-field .hint {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        /* Area Type Filter Styles */
+        .area-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .area-type-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .area-type-item:hover {
+            border-color: var(--accent);
+            background: #f5f9ff;
+        }
+        .area-type-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .area-type-item label {
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .area-type-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .area-type-buttons button {
+            padding: 8px 16px;
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .area-type-buttons button:hover {
+            background: var(--hks-light);
+        }
     </style>
 </head>
 <body>
@@ -256,10 +338,67 @@
                 </div>
             </div>
             
-            <!-- Step 2: Map Floors -->
+            <!-- Step 2: Project Info -->
             <div class="step hidden" id="step2">
                 <div class="step-header">
                     <div class="step-number">2</div>
+                    <div class="step-title">Project Information</div>
+                </div>
+                <div class="info-box">
+                    <p><strong>Optional:</strong> Enter project details below. Leave blank to use default values.</p>
+                </div>
+                <div class="project-info-grid">
+                    <div class="project-field">
+                        <label for="projectName">Project Name</label>
+                        <input type="text" id="projectName" placeholder="Project Name">
+                        <span class="hint">Default: "Project Name"</span>
+                    </div>
+                    <div class="project-field">
+                        <label for="projectLocation">Location</label>
+                        <input type="text" id="projectLocation" placeholder="City, State">
+                        <span class="hint">Default: "City, State"</span>
+                    </div>
+                    <div class="project-field">
+                        <label for="projectNumber">Project Number</label>
+                        <input type="text" id="projectNumber" placeholder="00000.000">
+                        <span class="hint">Default: "00000.000"</span>
+                    </div>
+                </div>
+                <div style="margin-top: 20px; text-align: right;">
+                    <button class="btn btn-primary" onclick="proceedToStep3()">
+                        Continue →
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Step 3: Area Type Filter -->
+            <div class="step hidden" id="step3">
+                <div class="step-header">
+                    <div class="step-number">3</div>
+                    <div class="step-title">Select Area Types</div>
+                </div>
+                <div class="info-box">
+                    <p><strong>Filter:</strong> Uncheck any area types you want to exclude from the calculations.</p>
+                </div>
+                <div class="area-type-buttons">
+                    <button onclick="selectAllAreaTypes()">✓ Select All</button>
+                    <button onclick="deselectAllAreaTypes()">✗ Deselect All</button>
+                </div>
+                <div class="area-type-grid" id="areaTypeGrid"></div>
+                <div style="margin-top: 20px; text-align: right;">
+                    <button class="btn" style="background: var(--hks-grey); color: white; margin-right: 10px;" onclick="showStep(2)">
+                        ← Back
+                    </button>
+                    <button class="btn btn-primary" onclick="proceedToStep4()">
+                        Continue →
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Step 4: Map Floors -->
+            <div class="step hidden" id="step4">
+                <div class="step-header">
+                    <div class="step-number">4</div>
                     <div class="step-title">Map Building Floors</div>
                 </div>
                 <div class="info-box">
@@ -289,26 +428,29 @@
                 </div>
                 <div class="mapping-container" id="mappingContainer"></div>
                 <div style="margin-top: 20px; text-align: right;">
+                    <button class="btn" style="background: var(--hks-grey); color: white; margin-right: 10px;" onclick="showStep(3)">
+                        ← Back
+                    </button>
                     <button class="btn btn-primary" onclick="proceedToGenerate()">
                         Continue →
                     </button>
                 </div>
             </div>
             
-            <!-- Step 3: Generate -->
-            <div class="step hidden" id="step3">
+            <!-- Step 5: Generate -->
+            <div class="step hidden" id="step5">
                 <div class="step-header">
-                    <div class="step-number">3</div>
+                    <div class="step-number">5</div>
                     <div class="step-title">Generate BOMA Spreadsheet</div>
                 </div>
                 <div class="info-box" style="background: #fff3e0; border-left-color: var(--warning);">
-                    <p><strong>Ready:</strong> Excel file will include BOMA Method A & B calculations with formulas, plus your Revit data.</p>
+                    <p><strong>Ready:</strong> Excel file will include BOMA Method A & B calculations with formulas, plus your Revit data (with typical floor duplications).</p>
                 </div>
                 <button class="btn btn-success" id="generateBtn" onclick="generateExcel()">
                     <span>📊</span> Generate Excel with Formulas
                 </button>
                 <div style="margin-top: 20px;">
-                    <button class="btn" style="background: var(--hks-grey); color: white;" onclick="showStep(2)">
+                    <button class="btn" style="background: var(--hks-grey); color: white;" onclick="showStep(4)">
                         ← Back
                     </button>
                 </div>
@@ -325,6 +467,8 @@
         let levelColumn = null;
         let originalMappings = [];
         let draggedIndex = null;
+        let areaTypes = [];
+        let selectedAreaTypes = [];
         
         // DOM elements
         const uploadZone = document.getElementById('uploadZone');
@@ -372,7 +516,7 @@
                         return;
                     }
                     
-                    // Extract levels (FIXED: allow short names like "P3")
+                    // Extract levels (allow short names like "P3")
                     revitLevels = [];
                     const seen = {};
                     jsonData.forEach(row => {
@@ -389,19 +533,70 @@
                         return;
                     }
                     
+                    // Extract area types
+                    const nameCol = Object.keys(jsonData[0]).find(k => k.toLowerCase() === 'name');
+                    if (nameCol) {
+                        const typeSet = new Set();
+                        jsonData.forEach(row => {
+                            const name = row[nameCol];
+                            if (name && typeof name === 'string' && name.trim().length > 0) {
+                                typeSet.add(name.trim());
+                            }
+                        });
+                        areaTypes = Array.from(typeSet).sort();
+                        selectedAreaTypes = [...areaTypes]; // All selected by default
+                    }
+                    
                     document.getElementById('fileName').textContent = file.name;
-                    document.getElementById('fileDetails').textContent = `${revitLevels.length} levels • ${jsonData.length} rows`;
+                    document.getElementById('fileDetails').textContent = `${revitLevels.length} levels • ${jsonData.length} rows • ${areaTypes.length} area types`;
                     document.getElementById('fileInfo').classList.add('active');
                     document.getElementById('totalLevels').textContent = revitLevels.length;
                     document.getElementById('totalRows').textContent = jsonData.length;
                     
                     initializeFloorMappings();
+                    renderAreaTypes();
                     showStep(2);
                 } catch (error) {
                     alert('Error: ' + error.message);
                 }
             };
             reader.readAsArrayBuffer(file);
+        }
+        
+        // Area Type Functions
+        function renderAreaTypes() {
+            const grid = document.getElementById('areaTypeGrid');
+            grid.innerHTML = '';
+            
+            areaTypes.forEach(type => {
+                const div = document.createElement('div');
+                div.className = 'area-type-item';
+                const isChecked = selectedAreaTypes.includes(type);
+                div.innerHTML = `
+                    <input type="checkbox" id="at_${type}" ${isChecked ? 'checked' : ''} 
+                           onchange="toggleAreaType('${type}', this.checked)">
+                    <label for="at_${type}">${type}</label>
+                `;
+                grid.appendChild(div);
+            });
+        }
+        
+        function toggleAreaType(type, checked) {
+            if (checked && !selectedAreaTypes.includes(type)) {
+                selectedAreaTypes.push(type);
+            } else if (!checked) {
+                selectedAreaTypes = selectedAreaTypes.filter(t => t !== type);
+            }
+        }
+        
+        function selectAllAreaTypes() {
+            selectedAreaTypes = [...areaTypes];
+            renderAreaTypes();
+        }
+        
+        function deselectAllAreaTypes() {
+            selectedAreaTypes = [];
+            renderAreaTypes();
         }
         
         function initializeFloorMappings() {
@@ -519,13 +714,26 @@
         
         function addFloorAbove(i) {
             const nextName = getNextFloorName(floorMappings[i].buildingFloor, 'above');
-            floorMappings.splice(i, 0, { revitLevel: '(New)', buildingFloor: nextName, isNew: true });
+            // New floor inherits from the floor it was created from
+            const sourceLevel = floorMappings[i].isNew ? floorMappings[i].sourceLevel : floorMappings[i].revitLevel;
+            floorMappings.splice(i, 0, { 
+                revitLevel: '(New)', 
+                buildingFloor: nextName, 
+                isNew: true,
+                sourceLevel: sourceLevel
+            });
             renderFloorMappings();
         }
         
         function addFloorBelow(i) {
             const nextName = getNextFloorName(floorMappings[i].buildingFloor, 'below');
-            floorMappings.splice(i + 1, 0, { revitLevel: '(New)', buildingFloor: nextName, isNew: true });
+            const sourceLevel = floorMappings[i].isNew ? floorMappings[i].sourceLevel : floorMappings[i].revitLevel;
+            floorMappings.splice(i + 1, 0, { 
+                revitLevel: '(New)', 
+                buildingFloor: nextName, 
+                isNew: true,
+                sourceLevel: sourceLevel
+            });
             renderFloorMappings();
         }
         
@@ -534,6 +742,7 @@
             if (!num) return currentName + ' (Copy)';
             
             const n = parseInt(num[0]);
+            const digitCount = num[0].length;
             const prefix = currentName.substring(0, currentName.indexOf(num[0]));
             const suffix = currentName.substring(currentName.indexOf(num[0]) + num[0].length);
             
@@ -546,7 +755,15 @@
                 newNum = direction === 'above' ? n + 1 : n - 1;
             }
             
-            return newNum > 0 ? prefix + newNum + suffix : currentName + ' (Copy)';
+            if (newNum <= 0) return currentName + ' (Copy)';
+            
+            // Preserve digit format (e.g., 06 stays 2 digits)
+            let newNumStr = newNum.toString();
+            if (newNumStr.length < digitCount) {
+                newNumStr = newNumStr.padStart(digitCount, '0');
+            }
+            
+            return prefix + newNumStr + suffix;
         }
         
         function removeFloor(i) {
@@ -558,7 +775,20 @@
         
         function showStep(n) {
             document.querySelectorAll('.step').forEach(el => el.classList.add('hidden'));
-            document.getElementById(n === 2 ? 'step2' : 'step3').classList.remove('hidden');
+            const stepId = n === 2 ? 'step2' : n === 3 ? 'step3' : n === 4 ? 'step4' : 'step5';
+            document.getElementById(stepId).classList.remove('hidden');
+        }
+        
+        function proceedToStep3() {
+            showStep(3);
+        }
+        
+        function proceedToStep4() {
+            if (selectedAreaTypes.length === 0) {
+                alert('Please select at least one area type');
+                return;
+            }
+            showStep(4);
         }
         
         function proceedToGenerate() {
@@ -567,42 +797,45 @@
                 alert(`Please name all ${empty.length} floor(s)`);
                 return;
             }
-            showStep(3);
+            showStep(5);
         }
         
         // Template URL - upload BOMA_Template.xlsx to GitHub for formatted output
         const TEMPLATE_URL = 'https://raw.githubusercontent.com/JasonCrist/BOMATabulator-PreRelease/main/BOMA_Template.xlsx';
         
         async function generateExcel() {
+            const generateBtn = document.getElementById('generateBtn');
             try {
                 generateBtn.disabled = true;
                 generateBtn.innerHTML = '<span class="spinner"></span> Generating...';
                 
-                // Build mapping lookup and reverse lookup for new floors
+                // Get project info with defaults
+                const projectInfo = {
+                    name: document.getElementById('projectName').value.trim() || 'Project Name',
+                    location: document.getElementById('projectLocation').value.trim() || 'City, State',
+                    number: document.getElementById('projectNumber').value.trim() || '00000.000'
+                };
+                
+                // Build mapping lookup and source floor lookup
                 const mappingLookup = {};  // Revit level -> Building floor
                 const sourceFloorLookup = {};  // Building floor -> Source Revit level
                 
                 floorMappings.forEach(m => {
                     if (!m.isNew) {
-                        // Original floors
                         mappingLookup[m.revitLevel] = m.buildingFloor;
                         sourceFloorLookup[m.buildingFloor] = m.revitLevel;
                     } else {
-                        // New floors - find which original floor they should use
-                        // For now, we'll mark them to inherit from the floor above them
-                        // This can be enhanced with explicit mapping UI later
-                        sourceFloorLookup[m.buildingFloor] = null;  // Will be filled later
+                        // New floor - use its stored sourceLevel
+                        sourceFloorLookup[m.buildingFloor] = m.sourceLevel || null;
                     }
                 });
                 
-                // For new floors, find their source floor
-                // Strategy: Look BELOW first (in the building hierarchy), then above
-                // This ensures "Add Above" on L6 makes L7-L12 all use L6
+                // For new floors without explicit source, find from neighbors
                 floorMappings.forEach((m, idx) => {
-                    if (m.isNew) {
+                    if (m.isNew && !sourceFloorLookup[m.buildingFloor]) {
                         let sourceFloor = null;
                         
-                        // First pass: Search BELOW in array (which is BELOW in building after sorting)
+                        // Search BELOW first
                         for (let i = idx + 1; i < floorMappings.length; i++) {
                             if (!floorMappings[i].isNew) {
                                 sourceFloor = floorMappings[i].revitLevel;
@@ -610,7 +843,7 @@
                             }
                         }
                         
-                        // Second pass: If nothing found below, search ABOVE
+                        // Then search ABOVE
                         if (!sourceFloor) {
                             for (let i = idx - 1; i >= 0; i--) {
                                 if (!floorMappings[i].isNew) {
@@ -626,43 +859,64 @@
                     }
                 });
                 
-                // Process data with floor mappings
-                const mappedData = rawData.filter(row => {
-                    const level = row[levelColumn];
-                    return level && typeof level === 'string' && level.trim().length > 0 &&
-                           !level.startsWith('(Instance)') && mappingLookup[level];
-                }).map(row => ({
-                    FloorMap: mappingLookup[row[levelColumn]],
-                    Name: row.Name || '',
-                    'Area Scheme Name': row['Area Scheme Name'] || '',
-                    Area: parseFloat(row.Area) || 0
-                }));
+                // Get name column
+                const nameCol = Object.keys(rawData[0]).find(k => k.toLowerCase() === 'name');
+                
+                // Create EXPANDED mapped data - includes duplicated rows for typical floors
+                const mappedData = [];
+                
+                // For each floor in the building (including new/typical floors)
+                floorMappings.forEach(floorMapping => {
+                    const buildingFloor = floorMapping.buildingFloor;
+                    const sourceLevel = sourceFloorLookup[buildingFloor];
+                    
+                    if (!sourceLevel) return;
+                    
+                    // Get all data rows for the source level
+                    rawData.forEach(row => {
+                        const level = row[levelColumn];
+                        if (level !== sourceLevel) return;
+                        
+                        const areaType = nameCol ? row[nameCol] : '';
+                        
+                        // Filter by selected area types
+                        if (nameCol && !selectedAreaTypes.includes(areaType)) return;
+                        
+                        // Add row with the building floor name (not source level)
+                        mappedData.push({
+                            FloorMap: buildingFloor,
+                            Name: areaType || '',
+                            'Area Scheme Name': row['Area Scheme Name'] || 'BOMA 2024',
+                            Area: parseFloat(row.Area) || 0
+                        });
+                    });
+                });
                 
                 if (mappedData.length === 0) {
-                    alert('No data to export');
+                    alert('No data to export. Check your area type selections.');
                     generateBtn.disabled = false;
                     generateBtn.innerHTML = '<span>📊</span> Generate Excel with Formulas';
                     return;
                 }
                 
-                // Get all floors from floorMappings (includes new floors)
+                // Get all floors from floorMappings
                 const allFloors = floorMappings.map(m => m.buildingFloor);
                 
                 // Try template first, fall back to basic generation
                 try {
-                    await generateWithTemplate(allFloors, sourceFloorLookup, mappedData);
+                    await generateWithTemplate(allFloors, sourceFloorLookup, mappedData, projectInfo);
                     alert('✓ BOMA Excel generated with formatting!\n\n' +
                           `• HKS-BOMA-B - ${allFloors.length} floors\n` +
                           `• HKS-BOMA-A - ${allFloors.length} floors\n` +
-                          '• Revit Data\n' +
+                          `• Revit Data - ${mappedData.length} rows (with typical floor data)\n` +
                           '• All formatting preserved! ✓');
                 } catch (templateError) {
                     console.log('Template not available, using basic generation:', templateError.message);
                     
                     // Fall back to basic generation
                     const wb = XLSX.utils.book_new();
-                    createBOMAMethodB(wb, allFloors, sourceFloorLookup);
-                    createBOMAMethodA(wb, allFloors, sourceFloorLookup);
+                    createBOMAMethodB(wb, allFloors, sourceFloorLookup, projectInfo);
+                    createBOMAMethodA(wb, allFloors, sourceFloorLookup, projectInfo);
                     
                     const wsData = XLSX.utils.json_to_sheet(mappedData);
                     XLSX.utils.book_append_sheet(wb, wsData, 'Revit Data');
@@ -676,7 +930,7 @@
                     alert('✓ BOMA Excel generated!\n\n' +
                           `• HKS-BOMA-B - ${allFloors.length} floors\n` +
                           `• HKS-BOMA-A - ${allFloors.length} floors\n` +
-                          '• Revit Data\n\n' +
+                          `• Revit Data - ${mappedData.length} rows\n\n` +
                           'Note: Upload BOMA_Template.xlsx to GitHub for formatted output');
                 }
                 
@@ -690,7 +944,7 @@
             }
         }
         
-        async function generateWithTemplate(floors, sourceFloorLookup, mappedData) {
+        async function generateWithTemplate(floors, sourceFloorLookup, mappedData, projectInfo) {
             // Fetch template from GitHub
             const response = await fetch(TEMPLATE_URL);
             if (!response.ok) {
@@ -701,15 +955,29 @@
             const data = new Uint8Array(arrayBuffer);
             const wb = XLSX.read(data, { type: 'array', cellStyles: true });
             
+            // Update project info in both sheets
+            if (wb.Sheets['HKS-BOMA-B']) {
+                wb.Sheets['HKS-BOMA-B']['A1'] = { t: 's', v: projectInfo.name };
+                wb.Sheets['HKS-BOMA-B']['A2'] = { t: 's', v: projectInfo.location };
+                wb.Sheets['HKS-BOMA-B']['A3'] = { t: 's', v: `HKS Project# ${projectInfo.number}` };
+            }
+            if (wb.Sheets['HKS-BOMA-A']) {
+                wb.Sheets['HKS-BOMA-A']['A1'] = { t: 's', v: projectInfo.name };
+                wb.Sheets['HKS-BOMA-A']['A2'] = { t: 's', v: projectInfo.location };
+                wb.Sheets['HKS-BOMA-A']['A3'] = { t: 's', v: `HKS Project# ${projectInfo.number}` };
+            }
+            
             // Populate BOMA-B
             populateBOMAMethodB(wb, floors, sourceFloorLookup);
             
             // Populate BOMA-A  
             populateBOMAMethodA(wb, floors, sourceFloorLookup);
             
-            // Populate Revit Data
+            // Populate Revit Data - clear existing and add new
             const wsData = wb.Sheets['Revit Data'];
-            const dataRange = XLSX.utils.decode_range(wsData['!ref']);
+            
+            // Clear existing data rows (keep header row 1)
+            const dataRange = XLSX.utils.decode_range(wsData['!ref'] || 'A1:D1');
             for (let R = 1; R <= dataRange.e.r; R++) {
                 for (let C = 0; C <= 3; C++) {
                     const cellAddr = XLSX.utils.encode_cell({ r: R, c: C });
@@ -717,6 +985,7 @@
                 }
             }
             
+            // Add new data
             mappedData.forEach((row, idx) => {
                 const rowNum = idx + 2;
                 wsData[`A${rowNum}`] = { t: 's', v: row.FloorMap };
@@ -740,19 +1009,28 @@
             const ws = wb.Sheets['HKS-BOMA-B'];
             const startRow = 9;
             
+            // Clear any existing data rows
+            for (let r = startRow; r <= 68; r++) {
+                for (let c = 0; c < 11; c++) {
+                    const cellAddr = XLSX.utils.encode_cell({ r: r - 1, c: c });
+                    delete ws[cellAddr];
+                }
+            }
+            
             floors.forEach((floor, idx) => {
                 const row = startRow + idx;
                 const rowStr = row.toString();
                 const sourceFloor = sourceFloorLookup[floor] || floor;
                 
+                // Formulas now reference the BUILDING FLOOR name (which exists in Revit Data)
                 ws['A' + rowStr] = { t: 's', v: floor };
-                ws['B' + rowStr] = { t: 'n', f: `SUMIF('Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$D:$D)`, z: '#,##0' };
-                ws['C' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"PA")`, z: '#,##0' };
+                ws['B' + rowStr] = { t: 'n', f: `SUMIF('Revit Data'!$A:$A,"${floor}",'Revit Data'!$D:$D)`, z: '#,##0' };
+                ws['C' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"PA")`, z: '#,##0' };
                 ws['D' + rowStr] = { t: 'n', f: `B${rowStr}-C${rowStr}`, z: '#,##0' };
-                ws['E' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"MVP")`, z: '#,##0' };
+                ws['E' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"MVP")`, z: '#,##0' };
                 ws['F' + rowStr] = { t: 'n', f: `D${rowStr}-E${rowStr}`, z: '#,##0' };
-                ws['G' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"TA-BALC")`, z: '#,##0' };
-                ws['H' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"TA")`, z: '#,##0' };
+                ws['G' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA-BALC")`, z: '#,##0' };
+                ws['H' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA")`, z: '#,##0' };
                 const subRowRef = (startRow + floors.length).toString();
                 ws['I' + rowStr] = { t: 'n', f: `IF($H$${subRowRef}=0,0,($F$${subRowRef}-$G$${subRowRef})/$H$${subRowRef})`, z: '0.0000' };
                 ws['J' + rowStr] = { t: 'n', f: `G${rowStr}+(H${rowStr}*I${rowStr})`, z: '#,##0' };
@@ -779,22 +1057,31 @@
             const ws = wb.Sheets['HKS-BOMA-A'];
             const startRow = 9;
             
+            // Clear any existing data rows
+            for (let r = startRow; r <= 68; r++) {
+                for (let c = 0; c < 16; c++) {
+                    const cellAddr = XLSX.utils.encode_cell({ r: r - 1, c: c });
+                    delete ws[cellAddr];
+                }
+            }
+            
             floors.forEach((floor, idx) => {
                 const row = startRow + idx;
                 const rowStr = row.toString();
                 const subRowRef = (startRow + floors.length).toString();
                 const sourceFloor = sourceFloorLookup[floor] || floor;
                 
+                // Formulas now reference the BUILDING FLOOR name
                 ws['A' + rowStr] = { t: 's', v: floor };
-                ws['B' + rowStr] = { t: 'n', f: `SUMIF('Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$D:$D)`, z: '#,##0' };
-                ws['C' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"PA")`, z: '#,##0' };
+                ws['B' + rowStr] = { t: 'n', f: `SUMIF('Revit Data'!$A:$A,"${floor}",'Revit Data'!$D:$D)`, z: '#,##0' };
+                ws['C' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"PA")`, z: '#,##0' };
                 ws['D' + rowStr] = { t: 'n', f: `B${rowStr}-C${rowStr}`, z: '#,##0' };
-                ws['E' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"MVP")`, z: '#,##0' };
+                ws['E' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"MVP")`, z: '#,##0' };
                 ws['F' + rowStr] = { t: 'n', f: `D${rowStr}-E${rowStr}`, z: '#,##0' };
-                ws['G' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"TA-BALC")`, z: '#,##0' };
-                ws['H' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"TA")`, z: '#,##0' };
-                ws['I' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"BSA")`, z: '#,##0' };
-                ws['J' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"FSA")+SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"BBC")`, z: '#,##0' };
+                ws['G' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA-BALC")`, z: '#,##0' };
+                ws['H' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA")`, z: '#,##0' };
+                ws['I' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BSA")+SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BSA-DECK")`, z: '#,##0' };
+                ws['J' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"FSA")+SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BBC")`, z: '#,##0' };
                 ws['K' + rowStr] = { t: 'n', f: `IF(H${rowStr}=0,0,(H${rowStr}+J${rowStr})/H${rowStr})`, z: '0.0000' };
                 ws['L' + rowStr] = { t: 'n', f: `H${rowStr}*K${rowStr}`, z: '#,##0' };
                 ws['M' + rowStr] = { t: 'n', f: `IF(($F$${subRowRef}-$G$${subRowRef}-$I$${subRowRef})=0,0,($F$${subRowRef}-$G$${subRowRef})/($F$${subRowRef}-$G$${subRowRef}-$I$${subRowRef}))`, z: '0.0000' };
@@ -824,23 +1111,23 @@
             ws['!ref'] = `A1:P${subRow}`;
         }
         
-        function createBOMAMethodB(wb, floors, sourceFloorLookup) {
+        function createBOMAMethodB(wb, floors, sourceFloorLookup, projectInfo) {
             const ws = {};
             const dateStr = new Date().toLocaleDateString('en-US', { 
                 year: 'numeric', month: 'long', day: 'numeric' 
             });
             
             // Row 1 - Project header
-            ws['A1'] = { t: 's', v: 'Project Name' };
+            ws['A1'] = { t: 's', v: projectInfo.name };
             ws['J1'] = { t: 's', v: 'Preliminary Global Summary Of Areas' };
             
             // Row 2 - Location and date
-            ws['A2'] = { t: 's', v: 'City, State' };
+            ws['A2'] = { t: 's', v: projectInfo.location };
             ws['J2'] = { t: 's', v: dateStr };
             ws['K2'] = { t: 's', v: 'Per BOMA/ANSI Z65.1 2024-Method B (Modified HKS)' };
             
             // Row 3 - Project number
-            ws['A3'] = { t: 's', v: 'HKS Project# 00000.000' };
+            ws['A3'] = { t: 's', v: `HKS Project# ${projectInfo.number}` };
             
             // Row 4 - Column letters
             const headers4 = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
@@ -863,8 +1150,8 @@
             // Row 7 - Full descriptions
             const desc7 = [
                 '(Parking)', 'GSF', 'Stairs, Shafts, & Elevators', 'GSF-MVP (No Load Factor)',
-                'Unenclosed Tenant Areas (Balconies), Tenant Storage/Lockers',
-                'Tenant Area (AKA Occupant Areas)', '', '', '', '', 'Explanation / Definitions'
+                'Unenclosed Tenant Areas (Balconies)', 'Tenant Area (AKA Occupant Areas)',
+                '', '', '', '', 'Explanation / Definitions'
             ];
             desc7.forEach((d, i) => {
                 if (d) ws[String.fromCharCode(65 + i) + '7'] = { t: 's', v: d };
@@ -887,62 +1174,18 @@
                 const row = startRow + idx;
                 const rowStr = row.toString();
                 
-                // Determine source floor for data lookups
-                const sourceFloor = sourceFloorLookup[floor] || floor;
-                
-                // Column A - Floor name
+                // Formulas reference the building floor name (data is duplicated in Revit Data)
                 ws['A' + rowStr] = { t: 's', v: floor };
-                
-                // Column B - Total boundary area for this floor
-                ws['B' + rowStr] = { 
-                    t: 'n', 
-                    f: `SUMIF('Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$D:$D)`,
-                    z: '#,##0' 
-                };
-                
-                // Column C - PA (Parking)
-                ws['C' + rowStr] = { 
-                    t: 'n', 
-                    f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"PA")`,
-                    z: '#,##0'
-                };
-                
-                // Column D - B - C
+                ws['B' + rowStr] = { t: 'n', f: `SUMIF('Revit Data'!$A:$A,"${floor}",'Revit Data'!$D:$D)`, z: '#,##0' };
+                ws['C' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"PA")`, z: '#,##0' };
                 ws['D' + rowStr] = { t: 'n', f: `B${rowStr}-C${rowStr}`, z: '#,##0' };
-                
-                // Column E - MVP
-                ws['E' + rowStr] = { 
-                    t: 'n', 
-                    f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"MVP")`,
-                    z: '#,##0'
-                };
-                
-                // Column F - D - E  
+                ws['E' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"MVP")`, z: '#,##0' };
                 ws['F' + rowStr] = { t: 'n', f: `D${rowStr}-E${rowStr}`, z: '#,##0' };
+                ws['G' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA-BALC")`, z: '#,##0' };
+                ws['H' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA")`, z: '#,##0' };
                 
-                // Column G - TA-BALC
-                ws['G' + rowStr] = { 
-                    t: 'n', 
-                    f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"TA-BALC")`,
-                    z: '#,##0'
-                };
-                
-                // Column H - TA
-                ws['H' + rowStr] = { 
-                    t: 'n', 
-                    f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"TA")`,
-                    z: '#,##0'
-                };
-                
-                // Column I - Load Factor B (references subtotal row)
                 const subRowRef = (startRow + floors.length).toString();
-                ws['I' + rowStr] = { 
-                    t: 'n', 
-                    f: `IF($H$${subRowRef}=0,0,($F$${subRowRef}-$G$${subRowRef})/$H$${subRowRef})`,
-                    z: '0.0000'
-                };
-                
-                // Column J - Rentable Area
+                ws['I' + rowStr] = { t: 'n', f: `IF($H$${subRowRef}=0,0,($F$${subRowRef}-$G$${subRowRef})/$H$${subRowRef})`, z: '0.0000' };
                 ws['J' + rowStr] = { t: 'n', f: `G${rowStr}+(H${rowStr}*I${rowStr})`, z: '#,##0' };
             });
             
@@ -961,19 +1204,9 @@
             ws['I' + subRow] = { t: 'n', f: `IF(H${subRow}=0,0,(F${subRow}-G${subRow})/H${subRow})`, z: '0.0000' };
             ws['J' + subRow] = { t: 'n', f: `SUM(J${startRow}:J${lastDataRow})`, z: '#,##0' };
             
-            // Set column widths
             ws['!cols'] = [
-                { wch: 25 }, // A - Floor Level
-                { wch: 12 }, // B
-                { wch: 12 }, // C
-                { wch: 12 }, // D
-                { wch: 12 }, // E
-                { wch: 12 }, // F
-                { wch: 12 }, // G
-                { wch: 12 }, // H
-                { wch: 12 }, // I
-                { wch: 12 }, // J
-                { wch: 30 }  // K - Classifications
+                { wch: 25 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 },
+                { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 30 }
             ];
             
             ws['!ref'] = `A1:K${subRow}`;
@@ -981,21 +1214,21 @@
             XLSX.utils.book_append_sheet(wb, ws, 'HKS-BOMA-B');
         }
         
-        function createBOMAMethodA(wb, floors, sourceFloorLookup) {
+        function createBOMAMethodA(wb, floors, sourceFloorLookup, projectInfo) {
             const ws = {};
             const dateStr = new Date().toLocaleDateString('en-US', { 
                 year: 'numeric', month: 'long', day: 'numeric' 
             });
             
             // Header rows
-            ws['A1'] = { t: 's', v: 'Project Name' };
+            ws['A1'] = { t: 's', v: projectInfo.name };
             ws['O1'] = { t: 's', v: 'Preliminary Global Summary Of Areas' };
             
-            ws['A2'] = { t: 's', v: 'City, State' };
+            ws['A2'] = { t: 's', v: projectInfo.location };
             ws['O2'] = { t: 's', v: dateStr };
             ws['P2'] = { t: 's', v: 'Per BOMA/ANSI Z65.1 2024-Method A (Modified HKS)' };
             
-            ws['A3'] = { t: 's', v: 'HKS Project# 00000.000' };
+            ws['A3'] = { t: 's', v: `HKS Project# ${projectInfo.number}` };
             
             // Row 4 - Column letters
             const headers4 = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P'];
@@ -1035,18 +1268,16 @@
                 const rowStr = row.toString();
                 const subRowRef = (startRow + floors.length).toString();
                 
-                const sourceFloor = sourceFloorLookup[floor] || floor;
-                
                 ws['A' + rowStr] = { t: 's', v: floor };
-                ws['B' + rowStr] = { t: 'n', f: `SUMIF('Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$D:$D)`, z: '#,##0' };
-                ws['C' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"PA")`, z: '#,##0' };
+                ws['B' + rowStr] = { t: 'n', f: `SUMIF('Revit Data'!$A:$A,"${floor}",'Revit Data'!$D:$D)`, z: '#,##0' };
+                ws['C' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"PA")`, z: '#,##0' };
                 ws['D' + rowStr] = { t: 'n', f: `B${rowStr}-C${rowStr}`, z: '#,##0' };
-                ws['E' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"MVP")`, z: '#,##0' };
+                ws['E' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"MVP")`, z: '#,##0' };
                 ws['F' + rowStr] = { t: 'n', f: `D${rowStr}-E${rowStr}`, z: '#,##0' };
-                ws['G' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"TA-BALC")`, z: '#,##0' };
-                ws['H' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"TA")`, z: '#,##0' };
-                ws['I' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"BSA")`, z: '#,##0' };
-                ws['J' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"FSA")+SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${sourceFloor}",'Revit Data'!$B:$B,"BBC")`, z: '#,##0' };
+                ws['G' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA-BALC")`, z: '#,##0' };
+                ws['H' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA")`, z: '#,##0' };
+                ws['I' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BSA")+SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BSA-DECK")`, z: '#,##0' };
+                ws['J' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"FSA")+SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BBC")`, z: '#,##0' };
                 ws['K' + rowStr] = { t: 'n', f: `IF(H${rowStr}=0,0,(H${rowStr}+J${rowStr})/H${rowStr})`, z: '0.0000' };
                 ws['L' + rowStr] = { t: 'n', f: `H${rowStr}*K${rowStr}`, z: '#,##0' };
                 ws['M' + rowStr] = { t: 'n', f: `IF(($F$${subRowRef}-$G$${subRowRef}-$I$${subRowRef})=0,0,($F$${subRowRef}-$G$${subRowRef})/($F$${subRowRef}-$G$${subRowRef}-$I$${subRowRef}))`, z: '0.0000' };
@@ -1074,10 +1305,9 @@
             ws['N' + subRow] = { t: 'n', f: `SUM(N${startRow}:N${lastDataRow})`, z: '#,##0' };
             ws['O' + subRow] = { t: 'n', f: `IF(H${subRow}=0,0,N${subRow}/H${subRow})`, z: '0.0000' };
             
-            // Set column widths
             ws['!cols'] = Array(16).fill({ wch: 11 });
-            ws['!cols'][0] = { wch: 25 }; // Floor Level wider
-            ws['!cols'][15] = { wch: 30 }; // Classifications wider
+            ws['!cols'][0] = { wch: 25 };
+            ws['!cols'][15] = { wch: 30 };
             
             ws['!ref'] = `A1:P${subRow}`;
             
