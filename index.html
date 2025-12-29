@@ -1592,12 +1592,17 @@
             
             if (wsData) {
                 // Populate Revit Data (starting at row 2)
+                // Column C = Area (BOMA types only), Column D = NON BOMA Areas (non-BOMA types only)
                 mappedData.forEach((row, idx) => {
                     const rowNum = idx + 2;
+                    const areaType = row.Name;
+                    const isBomaType = standardTypes.includes(areaType);
+                    
                     wsData.getCell(`A${rowNum}`).value = row.FloorMap;
                     wsData.getCell(`B${rowNum}`).value = row.Name;
-                    wsData.getCell(`C${rowNum}`).value = row.Area;
-                    wsData.getCell(`D${rowNum}`).value = row['Area Scheme Name'];
+                    wsData.getCell(`C${rowNum}`).value = isBomaType ? row.Area : 0;  // BOMA Area
+                    wsData.getCell(`D${rowNum}`).value = isBomaType ? 0 : row.Area;  // NON BOMA Areas
+                    wsData.getCell(`E${rowNum}`).value = row['Area Scheme Name'];
                 });
             }
             
@@ -1670,8 +1675,8 @@
                 
                 // Set values and formulas (formatting is preserved from template)
                 ws.getCell(`A${row}`).value = floor;
-                // Boundary Areas: Sum only BOMA standard types (excludes non-BOMA types)
-                ws.getCell(`B${row}`).value = { formula: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA-BALC")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"MVP")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"PA")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BSA")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BSA-DECK")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"FSA")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BBC")` };
+                // Boundary Areas: Simple SUMIF since Column C only contains BOMA data
+                ws.getCell(`B${row}`).value = { formula: `SUMIF('Revit Data'!$A:$A,"${floor}",'Revit Data'!$C:$C)` };
                 ws.getCell(`C${row}`).value = { formula: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"PA")` };
                 ws.getCell(`D${row}`).value = { formula: `B${row}-C${row}` };
                 ws.getCell(`E${row}`).value = { formula: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"MVP")` };
@@ -1727,8 +1732,8 @@
                 const row = startRow + idx;
                 
                 ws.getCell(`A${row}`).value = floor;
-                // Boundary Areas: Sum only BOMA standard types (excludes non-BOMA types)
-                ws.getCell(`B${row}`).value = { formula: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA-BALC")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"MVP")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"PA")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BSA")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BSA-DECK")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"FSA")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BBC")` };
+                // Boundary Areas: Simple SUMIF since Column C only contains BOMA data
+                ws.getCell(`B${row}`).value = { formula: `SUMIF('Revit Data'!$A:$A,"${floor}",'Revit Data'!$C:$C)` };
                 ws.getCell(`C${row}`).value = { formula: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"PA")` };
                 ws.getCell(`D${row}`).value = { formula: `B${row}-C${row}` };
                 ws.getCell(`E${row}`).value = { formula: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"MVP")` };
@@ -1793,8 +1798,8 @@
             // Row 5: "Input" labels
             // Row 6: A6="BOMA Area Type", B6+=Type names
             // Row 7: A7="Floor Level", B7+="Boundary Areas (Overall)", last col="TOTALS by Level"
-            // Row 8+: Floor data
-            // Last row: "TOTALS by Type"
+            // Row 8-27: Floor data (20 rows)
+            // Row 28: "TOTALS by Type"
             
             const startRow = 8;
             const numTypes = nonStandardTypes.length;
@@ -1837,11 +1842,11 @@
                 // Column A: Floor name
                 ws.getCell(row, 1).value = floor;
                 
-                // Columns B, C, D, etc.: SUMIFS formula for each non-standard type
+                // Columns B, C, D, etc.: SUMIFS formula for each non-standard type (using Column D = NON BOMA Areas)
                 nonStandardTypes.forEach((type, typeIdx) => {
                     const col = 2 + typeIdx;
                     ws.getCell(row, col).value = { 
-                        formula: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"${type}")` 
+                        formula: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"${type}")` 
                     };
                 });
                 
@@ -1875,7 +1880,7 @@
             // Copy row 8 style to all data rows
             for (let rowNum = startRow; rowNum <= totalsRow; rowNum++) {
                 for (let col = 1; col <= totalsByLevelCol; col++) {
-                    const templateRow = rowNum === totalsRow ? 17 : 8; // Use row 17 style for totals, row 8 for data
+                    const templateRow = rowNum === totalsRow ? 28 : 8; // Use row 28 style for totals, row 8 for data
                     const templateCell = ws.getCell(templateRow, col <= 9 ? col : 9);
                     const newCell = ws.getCell(rowNum, col);
                     if (templateCell.style) {
@@ -1899,9 +1904,9 @@
                 ws.getCell(7, col).value = null; // Row 7 - Headers
             }
             
-            // Hide unused rows (template has rows 8-16 for data, row 17 for totals)
-            // If fewer floors, hide rows from totalsRow+1 to 17
-            for (let rowNum = totalsRow + 1; rowNum <= 17; rowNum++) {
+            // Hide unused rows (template has rows 8-27 for data, row 28 for totals)
+            // If fewer floors, hide rows from totalsRow+1 to 28
+            for (let rowNum = totalsRow + 1; rowNum <= 28; rowNum++) {
                 ws.getRow(rowNum).hidden = true;
             }
         }
@@ -1971,8 +1976,8 @@
                 
                 // Formulas reference the building floor name (data is duplicated in Revit Data)
                 ws['A' + rowStr] = { t: 's', v: floor };
-                // Boundary Areas: Sum only BOMA standard types (excludes non-BOMA types)
-                ws['B' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA-BALC")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"MVP")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"PA")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BSA")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BSA-DECK")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"FSA")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BBC")`, z: '#,##0' };
+                // Boundary Areas: Simple SUMIF since Column C only contains BOMA data
+                ws['B' + rowStr] = { t: 'n', f: `SUMIF('Revit Data'!$A:$A,"${floor}",'Revit Data'!$C:$C)`, z: '#,##0' };
                 ws['C' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"PA")`, z: '#,##0' };
                 ws['D' + rowStr] = { t: 'n', f: `B${rowStr}-C${rowStr}`, z: '#,##0' };
                 ws['E' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"MVP")`, z: '#,##0' };
@@ -2065,8 +2070,8 @@
                 const subRowRef = (startRow + floors.length).toString();
                 
                 ws['A' + rowStr] = { t: 's', v: floor };
-                // Boundary Areas: Sum only BOMA standard types (excludes non-BOMA types)
-                ws['B' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA-BALC")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"MVP")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"PA")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BSA")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BSA-DECK")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"FSA")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BBC")`, z: '#,##0' };
+                // Boundary Areas: Simple SUMIF since Column C only contains BOMA data
+                ws['B' + rowStr] = { t: 'n', f: `SUMIF('Revit Data'!$A:$A,"${floor}",'Revit Data'!$C:$C)`, z: '#,##0' };
                 ws['C' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"PA")`, z: '#,##0' };
                 ws['D' + rowStr] = { t: 'n', f: `B${rowStr}-C${rowStr}`, z: '#,##0' };
                 ws['E' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"MVP")`, z: '#,##0' };
