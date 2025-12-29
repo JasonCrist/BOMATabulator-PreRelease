@@ -51,12 +51,12 @@
         .header h1 { font-size: 32px; font-weight: 600; margin-bottom: 8px; }
         .header p { opacity: 0.95; font-size: 15px; }
         
-        .content { padding: 40px; }
+        .content { padding: 25px; }
         
-        .step { margin-bottom: 40px; padding-bottom: 40px; border-bottom: 1px solid var(--border); }
+        .step { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
         .step:last-child { border-bottom: none; }
         
-        .step-header { display: flex; align-items: center; margin-bottom: 20px; }
+        .step-header { display: flex; align-items: center; margin-bottom: 10px; }
         .step-number {
             width: 40px; height: 40px;
             background: var(--hks-grey);
@@ -99,72 +99,71 @@
         .mapping-container {
             background: var(--hks-light);
             border-radius: 8px;
-            padding: 25px;
-            max-height: 500px;
+            padding: 12px;
+            max-height: 60vh;
             overflow-y: auto;
         }
         
         .floor-item {
             background: white;
-            padding: 18px 20px;
-            margin-bottom: 12px;
-            border-radius: 6px;
+            padding: 8px 12px;
+            margin-bottom: 4px;
+            border-radius: 4px;
             display: flex;
             align-items: center;
-            gap: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            gap: 10px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             transition: all 0.2s ease;
             cursor: grab;
         }
         .floor-item:hover {
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .floor-item.dragging { opacity: 0.5; cursor: grabbing; }
         .floor-item.drag-over { border-top: 3px solid var(--accent); }
         
         .drag-handle {
             cursor: grab;
-            padding: 5px;
+            padding: 2px;
             color: var(--hks-grey);
-            font-size: 18px;
+            font-size: 14px;
         }
         
         .floor-label {
-            min-width: 200px;
+            min-width: 180px;
             font-weight: 500;
             color: var(--hks-dark);
-            padding: 8px 12px;
+            padding: 6px 10px;
             background: var(--hks-light);
             border-radius: 4px;
+            font-size: 13px;
         }
         
         .floor-input {
             flex: 1;
-            padding: 12px 15px;
-            border: 2px solid var(--border);
-            border-radius: 6px;
-            font-size: 15px;
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 13px;
             font-family: Arial, sans-serif;
         }
         .floor-input:focus {
             outline: none;
             border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
         }
         
         .floor-actions {
             display: flex;
-            gap: 8px;
+            gap: 4px;
             flex-wrap: wrap;
         }
         .action-btn {
-            padding: 8px 14px;
+            padding: 4px 8px;
             border: 1px solid var(--border);
             background: white;
-            border-radius: 4px;
+            border-radius: 3px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 11px;
             transition: all 0.2s ease;
         }
         .action-btn:hover { background: var(--hks-light); }
@@ -192,29 +191,30 @@
         .info-box {
             background: #e3f2fd;
             border-left: 4px solid var(--accent);
-            padding: 16px 20px;
-            margin: 20px 0;
+            padding: 10px 15px;
+            margin: 10px 0;
             border-radius: 4px;
+            font-size: 14px;
         }
         
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin: 10px 0;
         }
         .stat-card {
             background: white;
-            padding: 20px;
-            border-radius: 8px;
+            padding: 10px;
+            border-radius: 6px;
             border: 1px solid var(--border);
             text-align: center;
         }
         .stat-value {
-            font-size: 32px;
+            font-size: 24px;
             font-weight: 600;
             color: var(--hks-grey);
-            margin-bottom: 5px;
+            margin-bottom: 2px;
         }
         
         .spinner {
@@ -563,27 +563,27 @@
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-value" id="totalLevels">0</div>
-                        <div style="font-size: 13px; color: #666;">REVIT LEVELS</div>
+                        <div style="font-size: 11px; color: #666;">REVIT LEVELS</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="totalRows">0</div>
-                        <div style="font-size: 13px; color: #666;">DATA ROWS</div>
+                        <div style="font-size: 11px; color: #666;">DATA ROWS</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="totalFloors">0</div>
-                        <div style="font-size: 13px; color: #666;">MAPPED FLOORS</div>
+                        <div style="font-size: 11px; color: #666;">MAPPED FLOORS</div>
                     </div>
                 </div>
-                <div style="margin-bottom: 20px;">
-                    <button class="btn" style="background: var(--hks-grey); color: white;" onclick="autoSortFloors()">
+                <div style="margin-bottom: 8px;">
+                    <button class="btn" style="background: var(--hks-grey); color: white; padding: 8px 16px; font-size: 13px;" onclick="autoSortFloors()">
                         <span>⇅</span> Auto-Sort
                     </button>
-                    <button class="btn" style="background: white; color: var(--hks-dark); border: 1px solid var(--border);" onclick="resetMappings()">
+                    <button class="btn" style="background: white; color: var(--hks-dark); border: 1px solid var(--border); padding: 8px 16px; font-size: 13px;" onclick="resetMappings()">
                         <span>↺</span> Reset
                     </button>
                 </div>
                 <div class="mapping-container" id="mappingContainer"></div>
-                <div style="margin-top: 20px; text-align: right;">
+                <div style="margin-top: 12px; text-align: right;">
                     <button class="btn" style="background: var(--hks-grey); color: white; margin-right: 10px;" onclick="showStep(3)">
                         ← Back
                     </button>
