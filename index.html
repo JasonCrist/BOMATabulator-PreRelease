@@ -1015,6 +1015,20 @@
             const startRow = 9;
             const subRow = startRow + floors.length;
             
+            // Clear template's original SubTotal at row 69 (if our subtotal is elsewhere)
+            if (subRow !== 69) {
+                for (let col = 1; col <= 11; col++) {
+                    ws.getCell(69, col).value = null;
+                }
+            }
+            
+            // Clear any unused data rows between our data and row 69
+            for (let row = subRow + 1; row <= 68; row++) {
+                for (let col = 1; col <= 11; col++) {
+                    ws.getCell(row, col).value = null;
+                }
+            }
+            
             floors.forEach((floor, idx) => {
                 const row = startRow + idx;
                 
@@ -1048,6 +1062,20 @@
         function populateBOMAMethodA_ExcelJS(ws, floors) {
             const startRow = 9;
             const subRow = startRow + floors.length;
+            
+            // Clear template's original SubTotal at row 69 (if our subtotal is elsewhere)
+            if (subRow !== 69) {
+                for (let col = 1; col <= 16; col++) {
+                    ws.getCell(69, col).value = null;
+                }
+            }
+            
+            // Clear any unused data rows between our data and row 69
+            for (let row = subRow + 1; row <= 68; row++) {
+                for (let col = 1; col <= 16; col++) {
+                    ws.getCell(row, col).value = null;
+                }
+            }
             
             floors.forEach((floor, idx) => {
                 const row = startRow + idx;
