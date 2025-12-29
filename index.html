@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HKS BOMA Calculator</title>
+    <title>HKS BOMA Tabulator</title>
     
     <!-- SheetJS Library for reading uploaded files -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -461,7 +461,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>BOMA Calculator</h1>
+            <h1><img src="https://raw.githubusercontent.com/JasonCrist/BOMATabulator-PreRelease/main/HKS-Logo-White_N2.png" alt="HKS" style="height: 1em; vertical-align: middle; margin-right: 10px;">BOMA Tabulator</h1>
             <p>Convert Revit area exports to BOMA-compliant calculation spreadsheets</p>
         </div>
         
@@ -1337,6 +1337,14 @@
                 
                 // Populate BOMA-B data
                 populateBOMAMethodB_ExcelJS(wsB, floors);
+                
+                // Remove blank rows: data ends at row (9+floors-1), subtotal at (9+floors), efficiency at (9+floors+1)
+                // Template has rows through 70, so delete from (9+floors+2) through 70
+                const keepUntilB = 9 + floors.length + 2; // Row after efficiency
+                const deleteCountB = 71 - keepUntilB; // Delete up through row 70
+                if (deleteCountB > 0) {
+                    wsB.spliceRows(keepUntilB, deleteCountB);
+                }
             }
             
             if (wsA) {
@@ -1347,6 +1355,13 @@
                 
                 // Populate BOMA-A data
                 populateBOMAMethodA_ExcelJS(wsA, floors);
+                
+                // Remove blank rows: same logic as BOMA-B
+                const keepUntilA = 9 + floors.length + 2; // Row after efficiency
+                const deleteCountA = 71 - keepUntilA; // Delete up through row 70
+                if (deleteCountA > 0) {
+                    wsA.spliceRows(keepUntilA, deleteCountA);
+                }
             }
             
             if (wsData) {
@@ -1377,7 +1392,7 @@
         function populateBOMAMethodB_ExcelJS(ws, floors) {
             const startRow = 9;
             const lastDataRow = startRow + floors.length - 1;
-            const subTotalRow = 69; // Template's SubTotal row - user can delete blank rows
+            const subTotalRow = startRow + floors.length; // Subtotal immediately after data
             
             floors.forEach((floor, idx) => {
                 const row = startRow + idx;
@@ -1395,8 +1410,9 @@
                 ws.getCell(`J${row}`).value = { formula: `G${row}+(H${row}*I${row})` };
             });
             
-            // Update TOTALS formulas at row 69 to reference actual data range
-            // (Don't overwrite A69 - preserve template's label)
+            // Write TOTALS formulas at the row immediately after data
+            // (Don't overwrite A - preserve template's label by copying from row 69)
+            ws.getCell(`A${subTotalRow}`).value = ws.getCell('A69').value || 'TOTALS';
             ws.getCell(`B${subTotalRow}`).value = { formula: `SUM(B${startRow}:B${lastDataRow})` };
             ws.getCell(`C${subTotalRow}`).value = { formula: `SUM(C${startRow}:C${lastDataRow})` };
             ws.getCell(`D${subTotalRow}`).value = { formula: `SUM(D${startRow}:D${lastDataRow})` };
@@ -1406,12 +1422,34 @@
             ws.getCell(`H${subTotalRow}`).value = { formula: `SUM(H${startRow}:H${lastDataRow})` };
             ws.getCell(`I${subTotalRow}`).value = { formula: `IF(H${subTotalRow}=0,0,(F${subTotalRow}-G${subTotalRow})/H${subTotalRow})` };
             ws.getCell(`J${subTotalRow}`).value = { formula: `SUM(J${startRow}:J${lastDataRow})` };
+            
+            // Copy formatting from template's subtotal row (69) to new subtotal row
+            for (let col = 1; col <= 10; col++) {
+                const templateCell = ws.getCell(69, col);
+                const newCell = ws.getCell(subTotalRow, col);
+                if (templateCell.style) {
+                    newCell.style = JSON.parse(JSON.stringify(templateCell.style));
+                }
+            }
+            
+            // Copy Efficiency row from 70 to new position (subTotalRow + 1)
+            const efficiencyRow = subTotalRow + 1;
+            ws.getCell(`A${efficiencyRow}`).value = ws.getCell('A70').value || 'Efficiency';
+            ws.getCell(`J${efficiencyRow}`).value = { formula: `IF(D${subTotalRow}=0,0,J${subTotalRow}/D${subTotalRow})` };
+            // Copy formatting
+            for (let col = 1; col <= 10; col++) {
+                const templateCell = ws.getCell(70, col);
+                const newCell = ws.getCell(efficiencyRow, col);
+                if (templateCell.style) {
+                    newCell.style = JSON.parse(JSON.stringify(templateCell.style));
+                }
+            }
         }
         
         function populateBOMAMethodA_ExcelJS(ws, floors) {
             const startRow = 9;
             const lastDataRow = startRow + floors.length - 1;
-            const subTotalRow = 69; // Template's SubTotal row - user can delete blank rows
+            const subTotalRow = startRow + floors.length; // Subtotal immediately after data
             
             floors.forEach((floor, idx) => {
                 const row = startRow + idx;
@@ -1433,8 +1471,8 @@
                 ws.getCell(`O${row}`).value = { formula: `IF(H${row}=0,0,N${row}/H${row})` };
             });
             
-            // Update TOTAL formulas at row 69 to reference actual data range
-            // (Don't overwrite A69 - preserve template's label)
+            // Write TOTAL formulas at the row immediately after data
+            ws.getCell(`A${subTotalRow}`).value = ws.getCell('A69').value || 'TOTAL';
             ws.getCell(`B${subTotalRow}`).value = { formula: `SUM(B${startRow}:B${lastDataRow})` };
             ws.getCell(`C${subTotalRow}`).value = { formula: `SUM(C${startRow}:C${lastDataRow})` };
             ws.getCell(`D${subTotalRow}`).value = { formula: `SUM(D${startRow}:D${lastDataRow})` };
@@ -1449,6 +1487,28 @@
             ws.getCell(`M${subTotalRow}`).value = { formula: `IF((F${subTotalRow}-G${subTotalRow}-I${subTotalRow})=0,0,(F${subTotalRow}-G${subTotalRow})/(F${subTotalRow}-G${subTotalRow}-I${subTotalRow}))` };
             ws.getCell(`N${subTotalRow}`).value = { formula: `SUM(N${startRow}:N${lastDataRow})` };
             // Note: Column O (Load Factor A) has no total - it's floor-specific
+            
+            // Copy formatting from template's subtotal row (69) to new subtotal row
+            for (let col = 1; col <= 15; col++) {
+                const templateCell = ws.getCell(69, col);
+                const newCell = ws.getCell(subTotalRow, col);
+                if (templateCell.style) {
+                    newCell.style = JSON.parse(JSON.stringify(templateCell.style));
+                }
+            }
+            
+            // Copy Efficiency row from 70 to new position (subTotalRow + 1)
+            const efficiencyRow = subTotalRow + 1;
+            ws.getCell(`A${efficiencyRow}`).value = ws.getCell('A70').value || 'Efficiency';
+            ws.getCell(`N${efficiencyRow}`).value = { formula: `IF(D${subTotalRow}=0,0,N${subTotalRow}/D${subTotalRow})` };
+            // Copy formatting
+            for (let col = 1; col <= 15; col++) {
+                const templateCell = ws.getCell(70, col);
+                const newCell = ws.getCell(efficiencyRow, col);
+                if (templateCell.style) {
+                    newCell.style = JSON.parse(JSON.stringify(templateCell.style));
+                }
+            }
         }
         
         function createBOMAMethodB(wb, floors, sourceFloorLookup, projectInfo) {
