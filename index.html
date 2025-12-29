@@ -56,7 +56,7 @@
         .step { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
         .step:last-child { border-bottom: none; }
         
-        .step-header { display: flex; align-items: center; margin-bottom: 10px; }
+        .step-header { display: flex; align-items: center; margin-bottom: 8px; }
         .step-number {
             width: 40px; height: 40px;
             background: var(--hks-grey);
@@ -98,20 +98,20 @@
         
         .mapping-container {
             background: var(--hks-light);
-            border-radius: 8px;
-            padding: 12px;
-            max-height: 60vh;
+            border-radius: 6px;
+            padding: 8px;
+            max-height: 65vh;
             overflow-y: auto;
         }
         
         .floor-item {
             background: white;
-            padding: 8px 12px;
-            margin-bottom: 4px;
+            padding: 5px 10px;
+            margin-bottom: 3px;
             border-radius: 4px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             transition: all 0.2s ease;
             cursor: grab;
@@ -124,27 +124,27 @@
         
         .drag-handle {
             cursor: grab;
-            padding: 2px;
+            padding: 0 2px;
             color: var(--hks-grey);
-            font-size: 14px;
+            font-size: 12px;
         }
         
         .floor-label {
-            min-width: 180px;
+            min-width: 220px;
             font-weight: 500;
             color: var(--hks-dark);
-            padding: 6px 10px;
+            padding: 4px 8px;
             background: var(--hks-light);
-            border-radius: 4px;
-            font-size: 13px;
+            border-radius: 3px;
+            font-size: 12px;
         }
         
         .floor-input {
             flex: 1;
-            padding: 6px 10px;
+            padding: 4px 8px;
             border: 1px solid var(--border);
-            border-radius: 4px;
-            font-size: 13px;
+            border-radius: 3px;
+            font-size: 12px;
             font-family: Arial, sans-serif;
         }
         .floor-input:focus {
@@ -154,11 +154,11 @@
         
         .floor-actions {
             display: flex;
-            gap: 4px;
+            gap: 3px;
             flex-wrap: wrap;
         }
         .action-btn {
-            padding: 4px 8px;
+            padding: 3px 6px;
             border: 1px solid var(--border);
             background: white;
             border-radius: 3px;
@@ -191,30 +191,34 @@
         .info-box {
             background: #e3f2fd;
             border-left: 4px solid var(--accent);
-            padding: 10px 15px;
-            margin: 10px 0;
+            padding: 8px 12px;
+            margin: 8px 0;
             border-radius: 4px;
-            font-size: 14px;
+            font-size: 13px;
         }
         
         .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 10px;
-            margin: 10px 0;
+            display: flex;
+            gap: 15px;
+            margin: 8px 0;
         }
         .stat-card {
             background: white;
-            padding: 10px;
-            border-radius: 6px;
+            padding: 6px 12px;
+            border-radius: 4px;
             border: 1px solid var(--border);
-            text-align: center;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
         .stat-value {
-            font-size: 24px;
+            font-size: 18px;
             font-weight: 600;
             color: var(--hks-grey);
-            margin-bottom: 2px;
+        }
+        .stat-label {
+            font-size: 11px;
+            color: #666;
         }
         
         .spinner {
@@ -563,27 +567,27 @@
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-value" id="totalLevels">0</div>
-                        <div style="font-size: 11px; color: #666;">REVIT LEVELS</div>
+                        <div class="stat-label">REVIT LEVELS</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="totalRows">0</div>
-                        <div style="font-size: 11px; color: #666;">DATA ROWS</div>
+                        <div class="stat-label">DATA ROWS</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="totalFloors">0</div>
-                        <div style="font-size: 11px; color: #666;">MAPPED FLOORS</div>
+                        <div class="stat-label">MAPPED FLOORS</div>
                     </div>
                 </div>
-                <div style="margin-bottom: 8px;">
-                    <button class="btn" style="background: var(--hks-grey); color: white; padding: 8px 16px; font-size: 13px;" onclick="autoSortFloors()">
+                <div style="margin-bottom: 6px;">
+                    <button class="btn" style="background: var(--hks-grey); color: white; padding: 6px 12px; font-size: 12px;" onclick="autoSortFloors()">
                         <span>⇅</span> Auto-Sort
                     </button>
-                    <button class="btn" style="background: white; color: var(--hks-dark); border: 1px solid var(--border); padding: 8px 16px; font-size: 13px;" onclick="resetMappings()">
+                    <button class="btn" style="background: white; color: var(--hks-dark); border: 1px solid var(--border); padding: 6px 12px; font-size: 12px;" onclick="resetMappings()">
                         <span>↺</span> Reset
                     </button>
                 </div>
                 <div class="mapping-container" id="mappingContainer"></div>
-                <div style="margin-top: 12px; text-align: right;">
+                <div style="margin-top: 8px; text-align: right;">
                     <button class="btn" style="background: var(--hks-grey); color: white; margin-right: 10px;" onclick="showStep(3)">
                         ← Back
                     </button>
@@ -1016,10 +1020,18 @@
                 div.draggable = true;
                 div.dataset.index = i;
                 
+                // For new floors, show which level's data is being copied
+                let labelText = m.revitLevel;
+                let labelStyle = '';
+                if (m.isNew) {
+                    labelText = `Copy of ${m.sourceLevel || 'unknown'} Data`;
+                    labelStyle = 'background: #e3f2fd; color: #1565c0;';
+                }
+                
                 div.innerHTML = `
                     <div class="drag-handle">⋮⋮</div>
-                    <div class="floor-label">${m.isNew ? '(New)' : m.revitLevel}</div>
-                    <div style="font-size: 24px; color: var(--hks-grey);">→</div>
+                    <div class="floor-label" style="${labelStyle}">${labelText}</div>
+                    <div style="color: var(--hks-grey);">→</div>
                     <input type="text" class="floor-input" value="${m.buildingFloor}"
                            onchange="updateFloorName(${i}, this.value)"
                            placeholder="Floor name">
