@@ -970,7 +970,7 @@
                 wsB.getCell('A1').value = projectInfo.name;
                 wsB.getCell('A2').value = projectInfo.location;
                 wsB.getCell('A3').value = `HKS Project# ${projectInfo.number}`;
-                wsB.getCell('J2').value = dateStr;
+                wsB.getCell('B2').value = dateStr;  // Date moved to B2
                 
                 // Populate BOMA-B data
                 populateBOMAMethodB_ExcelJS(wsB, floors);
@@ -980,7 +980,7 @@
                 wsA.getCell('A1').value = projectInfo.name;
                 wsA.getCell('A2').value = projectInfo.location;
                 wsA.getCell('A3').value = `HKS Project# ${projectInfo.number}`;
-                wsA.getCell('O2').value = dateStr;
+                wsA.getCell('B2').value = dateStr;  // Date moved to B2
                 
                 // Populate BOMA-A data
                 populateBOMAMethodA_ExcelJS(wsA, floors);
