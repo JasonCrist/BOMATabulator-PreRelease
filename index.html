@@ -1472,11 +1472,21 @@
                 // Try template first, fall back to basic generation
                 try {
                     await generateWithTemplate(allFloors, sourceFloorLookup, mappedData, projectInfo);
-                    alert('✓ BOMA Excel generated with formatting!\n\n' +
+                    
+                    // Build success message
+                    const selectedNonStd = nonStandardTypes.filter(t => selectedAreaTypes.includes(t));
+                    let successMsg = '✓ BOMA Excel generated with formatting!\n\n' +
                           `• HKS-BOMA-B - ${allFloors.length} floors\n` +
-                          `• HKS-BOMA-A - ${allFloors.length} floors\n` +
-                          `• Revit Data - ${mappedData.length} rows (with typical floor data)\n` +
-                          '• All formatting preserved! ✓');
+                          `• HKS-BOMA-A - ${allFloors.length} floors\n`;
+                    
+                    if (selectedNonStd.length > 0) {
+                        successMsg += `• NON-BOMA Areas - ${allFloors.length} floors × ${selectedNonStd.length} types\n`;
+                    }
+                    
+                    successMsg += `• Revit Data - ${mappedData.length} rows\n` +
+                          '• All formatting preserved! ✓';
+                    
+                    alert(successMsg);
                 } catch (templateError) {
                     console.log('Template not available, using basic generation:', templateError.message);
                     
@@ -1571,9 +1581,35 @@
                     const rowNum = idx + 2;
                     wsData.getCell(`A${rowNum}`).value = row.FloorMap;
                     wsData.getCell(`B${rowNum}`).value = row.Name;
-                    wsData.getCell(`C${rowNum}`).value = row['Area Scheme Name'];
-                    wsData.getCell(`D${rowNum}`).value = row.Area;
+                    wsData.getCell(`C${rowNum}`).value = row.Area;
+                    wsData.getCell(`D${rowNum}`).value = row['Area Scheme Name'];
                 });
+            }
+            
+            // Handle NON-BOMA Areas tab
+            const wsNonBoma = workbook.getWorksheet('NON-BOMA Areas');
+            
+            // Get selected non-standard types
+            const selectedNonStandard = nonStandardTypes.filter(t => selectedAreaTypes.includes(t));
+            
+            if (wsNonBoma) {
+                if (selectedNonStandard.length === 0) {
+                    // No non-standard types selected - try to remove the sheet
+                    try {
+                        workbook.removeWorksheet(wsNonBoma.id);
+                    } catch (e) {
+                        // If removal fails, just hide all content
+                        console.log('Could not remove NON-BOMA sheet, leaving blank');
+                    }
+                } else {
+                    // Populate NON-BOMA Areas tab
+                    wsNonBoma.getCell('A1').value = projectInfo.name;
+                    wsNonBoma.getCell('A2').value = projectInfo.location;
+                    wsNonBoma.getCell('A3').value = `HKS Project# ${projectInfo.number}`;
+                    wsNonBoma.getCell('B2').value = dateStr;
+                    
+                    populateNonBOMATab_ExcelJS(wsNonBoma, floors, selectedNonStandard);
+                }
             }
             
             // Generate buffer and download
@@ -1709,6 +1745,128 @@
                 if (templateCell.style) {
                     newCell.style = JSON.parse(JSON.stringify(templateCell.style));
                 }
+            }
+        }
+        
+        function populateNonBOMATab_ExcelJS(ws, floors, nonStandardTypes) {
+            // Template structure:
+            // Row 1: A1=Project Name, B1=Title (already in template)
+            // Row 2: A2=City, State, B2=Date
+            // Row 3: A3=HKS Project#
+            // Row 4: Column letters (A, B, C...)
+            // Row 5: "Input" labels
+            // Row 6: A6="BOMA Area Type", B6+=Type names
+            // Row 7: A7="Floor Level", B7+="Boundary Areas (Overall)", last col="TOTALS by Level"
+            // Row 8+: Floor data
+            // Last row: "TOTALS by Type"
+            
+            const startRow = 8;
+            const numTypes = nonStandardTypes.length;
+            const numFloors = floors.length;
+            const lastDataRow = startRow + numFloors - 1;
+            const totalsRow = startRow + numFloors; // TOTALS by Type row
+            const lastDataCol = 1 + numTypes; // Column A + type columns
+            const totalsByLevelCol = lastDataCol + 1; // Column for row totals
+            
+            // Row 6: Area type names in columns B, C, D, etc.
+            nonStandardTypes.forEach((type, idx) => {
+                const col = 2 + idx; // B=2, C=3, etc.
+                ws.getCell(6, col).value = type;
+            });
+            
+            // Row 7: Update headers - "Boundary Areas (Overall)" for each type column, then "TOTALS by Level"
+            nonStandardTypes.forEach((type, idx) => {
+                const col = 2 + idx;
+                ws.getCell(7, col).value = 'Boundary Areas (Overall)';
+            });
+            ws.getCell(7, totalsByLevelCol).value = 'TOTALS by Level';
+            
+            // Update column letters in Row 4
+            for (let i = 0; i < numTypes + 2; i++) { // +2 for A column and totals column
+                const col = 1 + i;
+                ws.getCell(4, col).value = String.fromCharCode(64 + col); // A, B, C, etc.
+            }
+            
+            // Update "Input" labels in Row 5
+            for (let i = 0; i < numTypes; i++) {
+                const col = 2 + i;
+                ws.getCell(5, col).value = 'Input';
+            }
+            ws.getCell(5, totalsByLevelCol).value = ''; // Clear for totals column
+            
+            // Data rows - one per floor
+            floors.forEach((floor, floorIdx) => {
+                const row = startRow + floorIdx;
+                
+                // Column A: Floor name
+                ws.getCell(row, 1).value = floor;
+                
+                // Columns B, C, D, etc.: SUMIFS formula for each non-standard type
+                nonStandardTypes.forEach((type, typeIdx) => {
+                    const col = 2 + typeIdx;
+                    ws.getCell(row, col).value = { 
+                        formula: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"${type}")` 
+                    };
+                });
+                
+                // TOTALS by Level column: SUM of all type columns for this row
+                const startColLetter = 'B';
+                const endColLetter = String.fromCharCode(65 + numTypes); // B + numTypes - 1
+                ws.getCell(row, totalsByLevelCol).value = { 
+                    formula: `SUM(${startColLetter}${row}:${endColLetter}${row})` 
+                };
+            });
+            
+            // TOTALS by Type row
+            ws.getCell(totalsRow, 1).value = 'TOTALS by Type';
+            
+            // Sum each type column
+            nonStandardTypes.forEach((type, typeIdx) => {
+                const col = 2 + typeIdx;
+                const colLetter = String.fromCharCode(65 + col - 1); // B, C, D, etc.
+                ws.getCell(totalsRow, col).value = { 
+                    formula: `SUM(${colLetter}${startRow}:${colLetter}${lastDataRow})` 
+                };
+            });
+            
+            // Grand total (bottom-right corner)
+            const totalsByLevelColLetter = String.fromCharCode(65 + totalsByLevelCol - 1);
+            ws.getCell(totalsRow, totalsByLevelCol).value = { 
+                formula: `SUM(${totalsByLevelColLetter}${startRow}:${totalsByLevelColLetter}${lastDataRow})` 
+            };
+            
+            // Copy formatting from template rows to actual data rows
+            // Copy row 8 style to all data rows
+            for (let rowNum = startRow; rowNum <= totalsRow; rowNum++) {
+                for (let col = 1; col <= totalsByLevelCol; col++) {
+                    const templateRow = rowNum === totalsRow ? 17 : 8; // Use row 17 style for totals, row 8 for data
+                    const templateCell = ws.getCell(templateRow, col <= 9 ? col : 9);
+                    const newCell = ws.getCell(rowNum, col);
+                    if (templateCell.style) {
+                        newCell.style = JSON.parse(JSON.stringify(templateCell.style));
+                    }
+                }
+            }
+            
+            // Hide unused columns after our TOTALS by Level column through template's column I (9)
+            // Template has: A=Floor, B-H=7 type columns, I=TOTALS by Level
+            // We use: A=Floor, B to (1+numTypes)=type columns, (2+numTypes)=TOTALS by Level
+            for (let col = totalsByLevelCol + 1; col <= 9; col++) {
+                ws.getColumn(col).hidden = true;
+            }
+            
+            // Clear content in header rows for hidden columns (in case they're unhidden)
+            for (let col = totalsByLevelCol + 1; col <= 9; col++) {
+                ws.getCell(4, col).value = null; // Row 4 - column letters
+                ws.getCell(5, col).value = null; // Row 5 - Input labels
+                ws.getCell(6, col).value = null; // Row 6 - Type names
+                ws.getCell(7, col).value = null; // Row 7 - Headers
+            }
+            
+            // Hide unused rows (template has rows 8-16 for data, row 17 for totals)
+            // If fewer floors, hide rows from totalsRow+1 to 17
+            for (let rowNum = totalsRow + 1; rowNum <= 17; rowNum++) {
+                ws.getRow(rowNum).hidden = true;
             }
         }
         
