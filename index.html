@@ -806,7 +806,11 @@
         function validateAreaTypes() {
             const mismatches = [];
             
-            for (const userType of selectedAreaTypes) {
+            // Only validate types that are in the BOMA Standard section
+            // Non-standard types are intentionally non-BOMA and don't need validation
+            const selectedStandardTypes = selectedAreaTypes.filter(t => standardTypes.includes(t));
+            
+            for (const userType of selectedStandardTypes) {
                 // Check for LITERAL exact match (case-insensitive only)
                 const upperType = userType.toUpperCase();
                 const isExactMatch = EXPECTED_AREA_TYPES.some(exp => exp.toUpperCase() === upperType);
