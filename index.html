@@ -1596,7 +1596,8 @@
                 mappedData.forEach((row, idx) => {
                     const rowNum = idx + 2;
                     const areaType = row.Name;
-                    const isBomaType = standardTypes.includes(areaType);
+                    // Check against EXPECTED_AREA_TYPES since mapped names should match these
+                    const isBomaType = EXPECTED_AREA_TYPES.some(exp => exp.toUpperCase() === areaType.toUpperCase());
                     
                     wsData.getCell(`A${rowNum}`).value = row.FloorMap;
                     wsData.getCell(`B${rowNum}`).value = row.Name;
