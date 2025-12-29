@@ -721,8 +721,9 @@
             const mismatches = [];
             
             for (const userType of selectedAreaTypes) {
-                const normalized = userType.toUpperCase().replace(/\s+/g, '').replace(/-+/g, '-');
-                const isExactMatch = EXPECTED_AREA_TYPES.includes(normalized);
+                // Check for LITERAL exact match (case-insensitive only)
+                const upperType = userType.toUpperCase();
+                const isExactMatch = EXPECTED_AREA_TYPES.some(exp => exp.toUpperCase() === upperType);
                 
                 if (!isExactMatch) {
                     const { match, score } = findBestMatch(userType);
