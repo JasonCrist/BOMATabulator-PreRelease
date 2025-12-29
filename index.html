@@ -618,7 +618,7 @@
                 <div class="revit-note">
                     <strong>💡 Tip:</strong> Consider fixing these area type names in your Revit model before the next export to avoid this step in the future.
                 </div>
-                <p style="margin-bottom: 15px;">The following area types in your Revit export don't match expected BOMA categories:</p>
+                <p style="margin-bottom: 15px;">The following selected area types don't match expected BOMA categories and may cause formula errors:</p>
                 <table class="mismatch-table" id="mismatchTable">
                     <thead>
                         <tr>
@@ -632,7 +632,7 @@
                 </table>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeValidationModal()">← Go Back</button>
+                <button class="btn btn-secondary" onclick="closeValidationModal()">← Adjust Selection</button>
                 <button class="btn btn-warning" onclick="applyMappingsAndProceed()">Apply Mappings & Continue →</button>
             </div>
         </div>
@@ -716,11 +716,11 @@
             return { match: bestMatch, score: bestScore };
         }
         
-        // Validate area types and return mismatches
+        // Validate area types and return mismatches (only checks selected types)
         function validateAreaTypes() {
             const mismatches = [];
             
-            for (const userType of areaTypes) {
+            for (const userType of selectedAreaTypes) {
                 const normalized = userType.toUpperCase().replace(/\s+/g, '').replace(/-+/g, '-');
                 const isExactMatch = EXPECTED_AREA_TYPES.includes(normalized);
                 
@@ -796,15 +796,13 @@
             }
         }
         
-        // Close modal and go back
+        // Close modal and go back to step 3
         function closeValidationModal() {
             document.getElementById('validationModal').classList.remove('active');
-            // Reset file input so user can re-upload
-            document.getElementById('fileInput').value = '';
-            document.getElementById('fileInfo').classList.remove('active');
+            // Stay on step 3 so user can adjust selections
         }
         
-        // Apply mappings and continue
+        // Apply mappings and continue to step 4
         function applyMappingsAndProceed() {
             // Verify all custom inputs have values
             for (const original in areaTypeMappings) {
@@ -816,8 +814,8 @@
             
             document.getElementById('validationModal').classList.remove('active');
             
-            // Continue to step 2
-            showStep(2);
+            // Continue to step 4 (Map Building Floors)
+            showStep(4);
         }
         
         // DOM elements
@@ -906,16 +904,9 @@
                     initializeFloorMappings();
                     renderAreaTypes();
                     
-                    // Validate area types
-                    const mismatches = validateAreaTypes();
-                    if (mismatches.length > 0) {
-                        // Show validation modal
-                        showValidationModal(mismatches);
-                    } else {
-                        // No mismatches, proceed directly
-                        areaTypeMappings = {}; // Clear any old mappings
-                        showStep(2);
-                    }
+                    // Clear any old mappings and proceed to step 2
+                    areaTypeMappings = {};
+                    showStep(2);
                 } catch (error) {
                     alert('Error: ' + error.message);
                 }
@@ -1148,7 +1139,17 @@
                 alert('Please select at least one area type');
                 return;
             }
-            showStep(4);
+            
+            // Validate selected area types
+            const mismatches = validateAreaTypes();
+            if (mismatches.length > 0) {
+                // Show validation modal
+                showValidationModal(mismatches);
+            } else {
+                // No mismatches, proceed directly
+                areaTypeMappings = {};
+                showStep(4);
+            }
         }
         
         function proceedToGenerate() {
