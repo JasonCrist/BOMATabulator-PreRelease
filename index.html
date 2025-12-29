@@ -1032,8 +1032,8 @@
                 ws.getCell(`J${row}`).value = { formula: `G${row}+(H${row}*I${row})` };
             });
             
-            // Update SubTotal formulas at row 69 to reference actual data range
-            ws.getCell(`A${subTotalRow}`).value = 'SubTotal';
+            // Update TOTALS formulas at row 69 to reference actual data range
+            // (Don't overwrite A69 - preserve template's label)
             ws.getCell(`B${subTotalRow}`).value = { formula: `SUM(B${startRow}:B${lastDataRow})` };
             ws.getCell(`C${subTotalRow}`).value = { formula: `SUM(C${startRow}:C${lastDataRow})` };
             ws.getCell(`D${subTotalRow}`).value = { formula: `SUM(D${startRow}:D${lastDataRow})` };
@@ -1070,8 +1070,8 @@
                 ws.getCell(`O${row}`).value = { formula: `IF(H${row}=0,0,N${row}/H${row})` };
             });
             
-            // Update SubTotal formulas at row 69 to reference actual data range
-            ws.getCell(`A${subTotalRow}`).value = 'SubTotal';
+            // Update TOTAL formulas at row 69 to reference actual data range
+            // (Don't overwrite A69 - preserve template's label)
             ws.getCell(`B${subTotalRow}`).value = { formula: `SUM(B${startRow}:B${lastDataRow})` };
             ws.getCell(`C${subTotalRow}`).value = { formula: `SUM(C${startRow}:C${lastDataRow})` };
             ws.getCell(`D${subTotalRow}`).value = { formula: `SUM(D${startRow}:D${lastDataRow})` };
@@ -1085,7 +1085,7 @@
             ws.getCell(`L${subTotalRow}`).value = { formula: `SUM(L${startRow}:L${lastDataRow})` };
             ws.getCell(`M${subTotalRow}`).value = { formula: `IF((F${subTotalRow}-G${subTotalRow}-I${subTotalRow})=0,0,(F${subTotalRow}-G${subTotalRow})/(F${subTotalRow}-G${subTotalRow}-I${subTotalRow}))` };
             ws.getCell(`N${subTotalRow}`).value = { formula: `SUM(N${startRow}:N${lastDataRow})` };
-            ws.getCell(`O${subTotalRow}`).value = { formula: `IF(H${subTotalRow}=0,0,N${subTotalRow}/H${subTotalRow})` };
+            // Note: Column O (Load Factor A) has no total - it's floor-specific
         }
         
         function createBOMAMethodB(wb, floors, sourceFloorLookup, projectInfo) {
