@@ -1013,21 +1013,8 @@
         
         function populateBOMAMethodB_ExcelJS(ws, floors) {
             const startRow = 9;
-            const subRow = startRow + floors.length;
-            
-            // Clear template's original SubTotal at row 69 (if our subtotal is elsewhere)
-            if (subRow !== 69) {
-                for (let col = 1; col <= 11; col++) {
-                    ws.getCell(69, col).value = null;
-                }
-            }
-            
-            // Clear any unused data rows between our data and row 69
-            for (let row = subRow + 1; row <= 68; row++) {
-                for (let col = 1; col <= 11; col++) {
-                    ws.getCell(row, col).value = null;
-                }
-            }
+            const lastDataRow = startRow + floors.length - 1;
+            const subTotalRow = 69; // Template's SubTotal row - user can delete blank rows
             
             floors.forEach((floor, idx) => {
                 const row = startRow + idx;
@@ -1041,41 +1028,27 @@
                 ws.getCell(`F${row}`).value = { formula: `D${row}-E${row}` };
                 ws.getCell(`G${row}`).value = { formula: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA-BALC")` };
                 ws.getCell(`H${row}`).value = { formula: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA")` };
-                ws.getCell(`I${row}`).value = { formula: `IF($H$${subRow}=0,0,($F$${subRow}-$G$${subRow})/$H$${subRow})` };
+                ws.getCell(`I${row}`).value = { formula: `IF($H$${subTotalRow}=0,0,($F$${subTotalRow}-$G$${subTotalRow})/$H$${subTotalRow})` };
                 ws.getCell(`J${row}`).value = { formula: `G${row}+(H${row}*I${row})` };
             });
             
-            // Subtotal row
-            const lastDataRow = subRow - 1;
-            ws.getCell(`A${subRow}`).value = 'SubTotal';
-            ws.getCell(`B${subRow}`).value = { formula: `SUM(B${startRow}:B${lastDataRow})` };
-            ws.getCell(`C${subRow}`).value = { formula: `SUM(C${startRow}:C${lastDataRow})` };
-            ws.getCell(`D${subRow}`).value = { formula: `SUM(D${startRow}:D${lastDataRow})` };
-            ws.getCell(`E${subRow}`).value = { formula: `SUM(E${startRow}:E${lastDataRow})` };
-            ws.getCell(`F${subRow}`).value = { formula: `SUM(F${startRow}:F${lastDataRow})` };
-            ws.getCell(`G${subRow}`).value = { formula: `SUM(G${startRow}:G${lastDataRow})` };
-            ws.getCell(`H${subRow}`).value = { formula: `SUM(H${startRow}:H${lastDataRow})` };
-            ws.getCell(`I${subRow}`).value = { formula: `IF(H${subRow}=0,0,(F${subRow}-G${subRow})/H${subRow})` };
-            ws.getCell(`J${subRow}`).value = { formula: `SUM(J${startRow}:J${lastDataRow})` };
+            // Update SubTotal formulas at row 69 to reference actual data range
+            ws.getCell(`A${subTotalRow}`).value = 'SubTotal';
+            ws.getCell(`B${subTotalRow}`).value = { formula: `SUM(B${startRow}:B${lastDataRow})` };
+            ws.getCell(`C${subTotalRow}`).value = { formula: `SUM(C${startRow}:C${lastDataRow})` };
+            ws.getCell(`D${subTotalRow}`).value = { formula: `SUM(D${startRow}:D${lastDataRow})` };
+            ws.getCell(`E${subTotalRow}`).value = { formula: `SUM(E${startRow}:E${lastDataRow})` };
+            ws.getCell(`F${subTotalRow}`).value = { formula: `SUM(F${startRow}:F${lastDataRow})` };
+            ws.getCell(`G${subTotalRow}`).value = { formula: `SUM(G${startRow}:G${lastDataRow})` };
+            ws.getCell(`H${subTotalRow}`).value = { formula: `SUM(H${startRow}:H${lastDataRow})` };
+            ws.getCell(`I${subTotalRow}`).value = { formula: `IF(H${subTotalRow}=0,0,(F${subTotalRow}-G${subTotalRow})/H${subTotalRow})` };
+            ws.getCell(`J${subTotalRow}`).value = { formula: `SUM(J${startRow}:J${lastDataRow})` };
         }
         
         function populateBOMAMethodA_ExcelJS(ws, floors) {
             const startRow = 9;
-            const subRow = startRow + floors.length;
-            
-            // Clear template's original SubTotal at row 69 (if our subtotal is elsewhere)
-            if (subRow !== 69) {
-                for (let col = 1; col <= 16; col++) {
-                    ws.getCell(69, col).value = null;
-                }
-            }
-            
-            // Clear any unused data rows between our data and row 69
-            for (let row = subRow + 1; row <= 68; row++) {
-                for (let col = 1; col <= 16; col++) {
-                    ws.getCell(row, col).value = null;
-                }
-            }
+            const lastDataRow = startRow + floors.length - 1;
+            const subTotalRow = 69; // Template's SubTotal row - user can delete blank rows
             
             floors.forEach((floor, idx) => {
                 const row = startRow + idx;
@@ -1092,28 +1065,27 @@
                 ws.getCell(`J${row}`).value = { formula: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"FSA")+SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BBC")` };
                 ws.getCell(`K${row}`).value = { formula: `IF(H${row}=0,0,(H${row}+J${row})/H${row})` };
                 ws.getCell(`L${row}`).value = { formula: `H${row}*K${row}` };
-                ws.getCell(`M${row}`).value = { formula: `IF(($F$${subRow}-$G$${subRow}-$I$${subRow})=0,0,($F$${subRow}-$G$${subRow})/($F$${subRow}-$G$${subRow}-$I$${subRow}))` };
+                ws.getCell(`M${row}`).value = { formula: `IF(($F$${subTotalRow}-$G$${subTotalRow}-$I$${subTotalRow})=0,0,($F$${subTotalRow}-$G$${subTotalRow})/($F$${subTotalRow}-$G$${subTotalRow}-$I$${subTotalRow}))` };
                 ws.getCell(`N${row}`).value = { formula: `G${row}+(L${row}*M${row})` };
                 ws.getCell(`O${row}`).value = { formula: `IF(H${row}=0,0,N${row}/H${row})` };
             });
             
-            // Subtotal row
-            const lastDataRow = subRow - 1;
-            ws.getCell(`A${subRow}`).value = 'SubTotal';
-            ws.getCell(`B${subRow}`).value = { formula: `SUM(B${startRow}:B${lastDataRow})` };
-            ws.getCell(`C${subRow}`).value = { formula: `SUM(C${startRow}:C${lastDataRow})` };
-            ws.getCell(`D${subRow}`).value = { formula: `SUM(D${startRow}:D${lastDataRow})` };
-            ws.getCell(`E${subRow}`).value = { formula: `SUM(E${startRow}:E${lastDataRow})` };
-            ws.getCell(`F${subRow}`).value = { formula: `SUM(F${startRow}:F${lastDataRow})` };
-            ws.getCell(`G${subRow}`).value = { formula: `SUM(G${startRow}:G${lastDataRow})` };
-            ws.getCell(`H${subRow}`).value = { formula: `SUM(H${startRow}:H${lastDataRow})` };
-            ws.getCell(`I${subRow}`).value = { formula: `SUM(I${startRow}:I${lastDataRow})` };
-            ws.getCell(`J${subRow}`).value = { formula: `SUM(J${startRow}:J${lastDataRow})` };
-            ws.getCell(`K${subRow}`).value = { formula: `IF(H${subRow}=0,0,(H${subRow}+J${subRow})/H${subRow})` };
-            ws.getCell(`L${subRow}`).value = { formula: `SUM(L${startRow}:L${lastDataRow})` };
-            ws.getCell(`M${subRow}`).value = { formula: `IF((F${subRow}-G${subRow}-I${subRow})=0,0,(F${subRow}-G${subRow})/(F${subRow}-G${subRow}-I${subRow}))` };
-            ws.getCell(`N${subRow}`).value = { formula: `SUM(N${startRow}:N${lastDataRow})` };
-            ws.getCell(`O${subRow}`).value = { formula: `IF(H${subRow}=0,0,N${subRow}/H${subRow})` };
+            // Update SubTotal formulas at row 69 to reference actual data range
+            ws.getCell(`A${subTotalRow}`).value = 'SubTotal';
+            ws.getCell(`B${subTotalRow}`).value = { formula: `SUM(B${startRow}:B${lastDataRow})` };
+            ws.getCell(`C${subTotalRow}`).value = { formula: `SUM(C${startRow}:C${lastDataRow})` };
+            ws.getCell(`D${subTotalRow}`).value = { formula: `SUM(D${startRow}:D${lastDataRow})` };
+            ws.getCell(`E${subTotalRow}`).value = { formula: `SUM(E${startRow}:E${lastDataRow})` };
+            ws.getCell(`F${subTotalRow}`).value = { formula: `SUM(F${startRow}:F${lastDataRow})` };
+            ws.getCell(`G${subTotalRow}`).value = { formula: `SUM(G${startRow}:G${lastDataRow})` };
+            ws.getCell(`H${subTotalRow}`).value = { formula: `SUM(H${startRow}:H${lastDataRow})` };
+            ws.getCell(`I${subTotalRow}`).value = { formula: `SUM(I${startRow}:I${lastDataRow})` };
+            ws.getCell(`J${subTotalRow}`).value = { formula: `SUM(J${startRow}:J${lastDataRow})` };
+            ws.getCell(`K${subTotalRow}`).value = { formula: `IF(H${subTotalRow}=0,0,(H${subTotalRow}+J${subTotalRow})/H${subTotalRow})` };
+            ws.getCell(`L${subTotalRow}`).value = { formula: `SUM(L${startRow}:L${lastDataRow})` };
+            ws.getCell(`M${subTotalRow}`).value = { formula: `IF((F${subTotalRow}-G${subTotalRow}-I${subTotalRow})=0,0,(F${subTotalRow}-G${subTotalRow})/(F${subTotalRow}-G${subTotalRow}-I${subTotalRow}))` };
+            ws.getCell(`N${subTotalRow}`).value = { formula: `SUM(N${startRow}:N${lastDataRow})` };
+            ws.getCell(`O${subTotalRow}`).value = { formula: `IF(H${subTotalRow}=0,0,N${subTotalRow}/H${subTotalRow})` };
         }
         
         function createBOMAMethodB(wb, floors, sourceFloorLookup, projectInfo) {
