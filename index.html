@@ -1338,12 +1338,11 @@
                 // Populate BOMA-B data
                 populateBOMAMethodB_ExcelJS(wsB, floors);
                 
-                // Remove blank rows: data ends at row (9+floors-1), subtotal at (9+floors), efficiency at (9+floors+1)
-                // Template has rows through 70, so delete from (9+floors+2) through 70
-                const keepUntilB = 9 + floors.length + 2; // Row after efficiency
-                const deleteCountB = 71 - keepUntilB; // Delete up through row 70
-                if (deleteCountB > 0) {
-                    wsB.spliceRows(keepUntilB, deleteCountB);
+                // Hide unused rows between efficiency and old template rows
+                const keepUntilB = 9 + floors.length + 2; // First row after efficiency
+                for (let rowNum = keepUntilB; rowNum <= 70; rowNum++) {
+                    const row = wsB.getRow(rowNum);
+                    row.hidden = true;
                 }
             }
             
@@ -1356,11 +1355,11 @@
                 // Populate BOMA-A data
                 populateBOMAMethodA_ExcelJS(wsA, floors);
                 
-                // Remove blank rows: same logic as BOMA-B
-                const keepUntilA = 9 + floors.length + 2; // Row after efficiency
-                const deleteCountA = 71 - keepUntilA; // Delete up through row 70
-                if (deleteCountA > 0) {
-                    wsA.spliceRows(keepUntilA, deleteCountA);
+                // Hide unused rows between efficiency and old template rows
+                const keepUntilA = 9 + floors.length + 2; // First row after efficiency
+                for (let rowNum = keepUntilA; rowNum <= 70; rowNum++) {
+                    const row = wsA.getRow(rowNum);
+                    row.hidden = true;
                 }
             }
             
