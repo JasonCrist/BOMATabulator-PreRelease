@@ -309,6 +309,153 @@
         .area-type-buttons button:hover {
             background: var(--hks-light);
         }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal {
+            background: white;
+            border-radius: 12px;
+            max-width: 700px;
+            width: 90%;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        .modal-header {
+            background: var(--warning);
+            color: white;
+            padding: 20px 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .modal-header.error {
+            background: var(--error);
+        }
+        .modal-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .modal-body {
+            padding: 25px;
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+        .modal-footer {
+            padding: 20px 25px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        .btn-secondary {
+            background: white;
+            color: var(--hks-dark);
+            border: 1px solid var(--border);
+        }
+        .btn-secondary:hover {
+            background: var(--hks-light);
+        }
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+        .btn-warning:hover {
+            background: #f57c00;
+        }
+        
+        /* Mismatch table */
+        .mismatch-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .mismatch-table th,
+        .mismatch-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        .mismatch-table th {
+            background: var(--hks-light);
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--hks-grey);
+        }
+        .mismatch-table td {
+            font-size: 14px;
+        }
+        .mismatch-original {
+            font-family: monospace;
+            background: #fff3e0;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: #e65100;
+        }
+        .mismatch-arrow {
+            color: var(--hks-grey);
+            font-size: 18px;
+        }
+        .mismatch-suggestion {
+            font-family: monospace;
+            background: #e8f5e9;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: #2e7d32;
+        }
+        .match-percent {
+            font-size: 12px;
+            color: #666;
+            margin-left: 8px;
+        }
+        
+        /* Mapping select dropdown */
+        .mapping-select {
+            padding: 8px 12px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            min-width: 160px;
+            background: white;
+            cursor: pointer;
+        }
+        .mapping-select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .custom-input {
+            padding: 8px 12px;
+            border: 2px solid var(--accent);
+            border-radius: 6px;
+            font-size: 14px;
+            width: 140px;
+            margin-left: 8px;
+        }
+        .revit-note {
+            background: #fff8e1;
+            border: 1px solid #ffcc02;
+            border-radius: 6px;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+        .revit-note strong {
+            color: #f57c00;
+        }
     </style>
 </head>
 <body>
@@ -460,6 +607,37 @@
         </div>
     </div>
     
+    <!-- Area Type Validation Modal -->
+    <div class="modal-overlay" id="validationModal">
+        <div class="modal">
+            <div class="modal-header">
+                <span style="font-size: 28px;">⚠️</span>
+                <h2>Area Type Mismatch Detected</h2>
+            </div>
+            <div class="modal-body">
+                <div class="revit-note">
+                    <strong>💡 Tip:</strong> Consider fixing these area type names in your Revit model before the next export to avoid this step in the future.
+                </div>
+                <p style="margin-bottom: 15px;">The following area types in your Revit export don't match expected BOMA categories:</p>
+                <table class="mismatch-table" id="mismatchTable">
+                    <thead>
+                        <tr>
+                            <th>Your Data</th>
+                            <th></th>
+                            <th>Map To</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mismatchTableBody">
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeValidationModal()">← Go Back</button>
+                <button class="btn btn-warning" onclick="applyMappingsAndProceed()">Apply Mappings & Continue →</button>
+            </div>
+        </div>
+    </div>
+    
     <script>
         // Global state
         let workbookData = null;
@@ -471,6 +649,176 @@
         let draggedIndex = null;
         let areaTypes = [];
         let selectedAreaTypes = [];
+        let areaTypeMappings = {}; // Maps user's area types to BOMA categories
+        
+        // Expected BOMA area types
+        const EXPECTED_AREA_TYPES = ['TA', 'TA-BALC', 'MVP', 'PA', 'BSA', 'BSA-DECK', 'FSA', 'BBC'];
+        
+        // Levenshtein distance for fuzzy matching
+        function levenshteinDistance(a, b) {
+            const matrix = [];
+            for (let i = 0; i <= b.length; i++) {
+                matrix[i] = [i];
+            }
+            for (let j = 0; j <= a.length; j++) {
+                matrix[0][j] = j;
+            }
+            for (let i = 1; i <= b.length; i++) {
+                for (let j = 1; j <= a.length; j++) {
+                    if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                        matrix[i][j] = matrix[i - 1][j - 1];
+                    } else {
+                        matrix[i][j] = Math.min(
+                            matrix[i - 1][j - 1] + 1,
+                            matrix[i][j - 1] + 1,
+                            matrix[i - 1][j] + 1
+                        );
+                    }
+                }
+            }
+            return matrix[b.length][a.length];
+        }
+        
+        // Calculate similarity percentage
+        function getSimilarity(str1, str2) {
+            const s1 = str1.toUpperCase().replace(/\s+/g, '');
+            const s2 = str2.toUpperCase().replace(/\s+/g, '');
+            const maxLen = Math.max(s1.length, s2.length);
+            if (maxLen === 0) return 100;
+            const distance = levenshteinDistance(s1, s2);
+            return Math.round((1 - distance / maxLen) * 100);
+        }
+        
+        // Find best matching expected type
+        function findBestMatch(userType) {
+            let bestMatch = null;
+            let bestScore = 0;
+            
+            // Normalize for comparison
+            const normalized = userType.toUpperCase().replace(/\s+/g, '').replace(/-+/g, '-');
+            
+            // Check for exact match first
+            for (const expected of EXPECTED_AREA_TYPES) {
+                if (normalized === expected) {
+                    return { match: expected, score: 100 };
+                }
+            }
+            
+            // Fuzzy match
+            for (const expected of EXPECTED_AREA_TYPES) {
+                const score = getSimilarity(userType, expected);
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMatch = expected;
+                }
+            }
+            
+            return { match: bestMatch, score: bestScore };
+        }
+        
+        // Validate area types and return mismatches
+        function validateAreaTypes() {
+            const mismatches = [];
+            
+            for (const userType of areaTypes) {
+                const normalized = userType.toUpperCase().replace(/\s+/g, '').replace(/-+/g, '-');
+                const isExactMatch = EXPECTED_AREA_TYPES.includes(normalized);
+                
+                if (!isExactMatch) {
+                    const { match, score } = findBestMatch(userType);
+                    mismatches.push({
+                        original: userType,
+                        suggested: match,
+                        score: score
+                    });
+                }
+            }
+            
+            return mismatches;
+        }
+        
+        // Show validation modal with mismatches
+        function showValidationModal(mismatches) {
+            const tbody = document.getElementById('mismatchTableBody');
+            tbody.innerHTML = '';
+            
+            // Initialize mappings
+            areaTypeMappings = {};
+            
+            mismatches.forEach((mismatch, idx) => {
+                const row = document.createElement('tr');
+                
+                // Build dropdown options
+                let options = EXPECTED_AREA_TYPES.map(type => 
+                    `<option value="${type}" ${type === mismatch.suggested ? 'selected' : ''}>${type}</option>`
+                ).join('');
+                options += '<option value="__custom__">Add a custom Category</option>';
+                
+                row.innerHTML = `
+                    <td><span class="mismatch-original">${mismatch.original}</span></td>
+                    <td class="mismatch-arrow">→</td>
+                    <td>
+                        <select class="mapping-select" id="mapping_${idx}" onchange="handleMappingChange(${idx}, '${mismatch.original}', this.value)">
+                            ${options}
+                        </select>
+                        <input type="text" class="custom-input" id="custom_${idx}" style="display:none;" 
+                               placeholder="Custom name" onchange="handleCustomInput(${idx}, '${mismatch.original}', this.value)">
+                        <span class="match-percent">${mismatch.score}% match</span>
+                    </td>
+                `;
+                tbody.appendChild(row);
+                
+                // Initialize mapping with suggested value
+                areaTypeMappings[mismatch.original] = mismatch.suggested;
+            });
+            
+            document.getElementById('validationModal').classList.add('active');
+        }
+        
+        // Handle dropdown change
+        function handleMappingChange(idx, original, value) {
+            const customInput = document.getElementById(`custom_${idx}`);
+            
+            if (value === '__custom__') {
+                customInput.style.display = 'inline-block';
+                customInput.focus();
+                // Don't update mapping until they type something
+            } else {
+                customInput.style.display = 'none';
+                areaTypeMappings[original] = value;
+            }
+        }
+        
+        // Handle custom input
+        function handleCustomInput(idx, original, value) {
+            if (value.trim()) {
+                areaTypeMappings[original] = value.trim();
+            }
+        }
+        
+        // Close modal and go back
+        function closeValidationModal() {
+            document.getElementById('validationModal').classList.remove('active');
+            // Reset file input so user can re-upload
+            document.getElementById('fileInput').value = '';
+            document.getElementById('fileInfo').classList.remove('active');
+        }
+        
+        // Apply mappings and continue
+        function applyMappingsAndProceed() {
+            // Verify all custom inputs have values
+            for (const original in areaTypeMappings) {
+                if (!areaTypeMappings[original]) {
+                    alert('Please provide a mapping for all area types');
+                    return;
+                }
+            }
+            
+            document.getElementById('validationModal').classList.remove('active');
+            
+            // Continue to step 2
+            showStep(2);
+        }
         
         // DOM elements
         const uploadZone = document.getElementById('uploadZone');
@@ -557,7 +905,17 @@
                     
                     initializeFloorMappings();
                     renderAreaTypes();
-                    showStep(2);
+                    
+                    // Validate area types
+                    const mismatches = validateAreaTypes();
+                    if (mismatches.length > 0) {
+                        // Show validation modal
+                        showValidationModal(mismatches);
+                    } else {
+                        // No mismatches, proceed directly
+                        areaTypeMappings = {}; // Clear any old mappings
+                        showStep(2);
+                    }
                 } catch (error) {
                     alert('Error: ' + error.message);
                 }
@@ -885,9 +1243,12 @@
                         if (nameCol && !selectedAreaTypes.includes(areaType)) return;
                         
                         // Add row with the building floor name (not source level)
+                        // Apply area type mapping if exists
+                        const mappedAreaType = areaTypeMappings[areaType] || areaType || '';
+                        
                         mappedData.push({
                             FloorMap: buildingFloor,
-                            Name: areaType || '',
+                            Name: mappedAreaType,
                             'Area Scheme Name': row['Area Scheme Name'] || 'BOMA 2024',
                             Area: parseFloat(row.Area) || 0
                         });
