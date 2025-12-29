@@ -268,18 +268,18 @@
         /* Area Type Filter Styles */
         .area-type-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 10px;
-            margin: 15px 0;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 6px;
+            margin: 10px 0;
         }
         .area-type-item {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 10px 12px;
+            gap: 6px;
+            padding: 6px 10px;
             background: white;
             border: 1px solid var(--border);
-            border-radius: 6px;
+            border-radius: 4px;
             cursor: pointer;
             transition: all 0.2s ease;
         }
@@ -288,13 +288,13 @@
             background: #f5f9ff;
         }
         .area-type-item input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             cursor: pointer;
         }
         .area-type-item label {
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
         }
         .area-type-buttons {
@@ -312,6 +312,60 @@
         }
         .area-type-buttons button:hover {
             background: var(--hks-light);
+        }
+        
+        /* Area Category Styles */
+        .area-category {
+            margin-bottom: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        .area-category-header {
+            padding: 10px 15px;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .area-category-header.standard {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-bottom: 1px solid #c8e6c9;
+        }
+        .area-category-header.nonstandard {
+            background: #fff3e0;
+            color: #e65100;
+            border-bottom: 1px solid #ffe0b2;
+        }
+        .area-category-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .area-category-actions button {
+            padding: 4px 10px;
+            border: 1px solid rgba(0,0,0,0.2);
+            background: rgba(255,255,255,0.7);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        .area-category-actions button:hover {
+            background: rgba(255,255,255,1);
+        }
+        .area-category .area-type-grid {
+            padding: 8px 12px;
+            margin: 0;
+            background: white;
+        }
+        .nonstandard-note {
+            padding: 8px 15px;
+            background: #fffde7;
+            font-size: 12px;
+            color: #666;
+            margin: 0;
+            border-top: 1px solid #fff9c4;
         }
         
         /* Modal Styles */
@@ -470,7 +524,7 @@
             <p id="headerSteps" style="margin-top: 12px; font-size: 13px; opacity: 0.85; line-height: 1.8;">
                 <strong>Step 1:</strong> Upload your Revit export file<br>
                 <strong>Step 2:</strong> Enter project information<br>
-                <strong>Step 3:</strong> Select area types to include<br>
+                <strong>Step 3:</strong> Review and select area types<br>
                 <strong>Step 4:</strong> Map and reorder building floors<br>
                 <strong>Step 5:</strong> Generate your BOMA spreadsheet
             </p>
@@ -531,21 +585,42 @@
                 </div>
             </div>
             
-            <!-- Step 3: Area Type Filter -->
+            <!-- Step 3: Area Type Review -->
             <div class="step hidden" id="step3">
                 <div class="step-header">
                     <div class="step-number">3</div>
-                    <div class="step-title">Select Area Types</div>
+                    <div class="step-title">Review Area Types</div>
                 </div>
                 <div class="info-box">
-                    <p><strong>Filter:</strong> Uncheck any area types you want to exclude from the calculations.</p>
+                    <p><strong>Review:</strong> Area types have been categorized based on BOMA standards. Standard types are pre-selected. Adjust as needed.</p>
                 </div>
-                <div class="area-type-buttons">
-                    <button onclick="selectAllAreaTypes()">✓ Select All</button>
-                    <button onclick="deselectAllAreaTypes()">✗ Deselect All</button>
+                
+                <!-- BOMA Standard Types -->
+                <div class="area-category" id="bomaStandardSection">
+                    <div class="area-category-header standard">
+                        <span>✓ BOMA Standard Area Types</span>
+                        <div class="area-category-actions">
+                            <button onclick="selectAllStandard()">Select All</button>
+                            <button onclick="deselectAllStandard()">Deselect All</button>
+                        </div>
+                    </div>
+                    <div class="area-type-grid" id="standardAreaTypes"></div>
                 </div>
-                <div class="area-type-grid" id="areaTypeGrid"></div>
-                <div style="margin-top: 20px; text-align: right;">
+                
+                <!-- Non-Standard Types -->
+                <div class="area-category" id="nonStandardSection">
+                    <div class="area-category-header nonstandard">
+                        <span>⚠ Non-Standard Area Types</span>
+                        <div class="area-category-actions">
+                            <button onclick="selectAllNonStandard()">Select All</button>
+                            <button onclick="deselectAllNonStandard()">Deselect All</button>
+                        </div>
+                    </div>
+                    <div class="area-type-grid" id="nonStandardAreaTypes"></div>
+                    <p class="nonstandard-note">These types are not recognized BOMA categories and are excluded by default. Select any you wish to include.</p>
+                </div>
+                
+                <div style="margin-top: 15px; text-align: right;">
                     <button class="btn" style="background: var(--hks-grey); color: white; margin-right: 10px;" onclick="showStep(2)">
                         ← Back
                     </button>
@@ -904,7 +979,7 @@
                             }
                         });
                         areaTypes = Array.from(typeSet).sort();
-                        selectedAreaTypes = [...areaTypes]; // All selected by default
+                        // selectedAreaTypes will be set by renderAreaTypes/categorizeAreaTypes
                     }
                     
                     document.getElementById('fileName').textContent = file.name;
@@ -927,21 +1002,84 @@
         }
         
         // Area Type Functions
-        function renderAreaTypes() {
-            const grid = document.getElementById('areaTypeGrid');
-            grid.innerHTML = '';
+        // Check if an area type matches BOMA standards (exact or normalized match)
+        function isBomaStandard(type) {
+            const upperType = type.toUpperCase();
+            // Check exact match first
+            if (EXPECTED_AREA_TYPES.some(exp => exp.toUpperCase() === upperType)) {
+                return true;
+            }
+            // Check normalized match (removing spaces)
+            const normalized = upperType.replace(/\s+/g, '').replace(/-+/g, '-');
+            return EXPECTED_AREA_TYPES.some(exp => exp.toUpperCase() === normalized);
+        }
+        
+        // Categorize area types into standard and non-standard
+        let standardTypes = [];
+        let nonStandardTypes = [];
+        
+        function categorizeAreaTypes() {
+            standardTypes = [];
+            nonStandardTypes = [];
             
             areaTypes.forEach(type => {
-                const div = document.createElement('div');
-                div.className = 'area-type-item';
-                const isChecked = selectedAreaTypes.includes(type);
-                div.innerHTML = `
-                    <input type="checkbox" id="at_${type}" ${isChecked ? 'checked' : ''} 
-                           onchange="toggleAreaType('${type}', this.checked)">
-                    <label for="at_${type}">${type}</label>
-                `;
-                grid.appendChild(div);
+                if (isBomaStandard(type)) {
+                    standardTypes.push(type);
+                } else {
+                    nonStandardTypes.push(type);
+                }
             });
+            
+            // Pre-select only standard types
+            selectedAreaTypes = [...standardTypes];
+        }
+        
+        function renderAreaTypes() {
+            categorizeAreaTypes();
+            
+            const standardGrid = document.getElementById('standardAreaTypes');
+            const nonStandardGrid = document.getElementById('nonStandardAreaTypes');
+            const standardSection = document.getElementById('bomaStandardSection');
+            const nonStandardSection = document.getElementById('nonStandardSection');
+            
+            // Render standard types
+            standardGrid.innerHTML = '';
+            if (standardTypes.length === 0) {
+                standardGrid.innerHTML = '<p style="color: #666; font-size: 13px; margin: 5px 0;">No BOMA standard area types found in your data.</p>';
+            } else {
+                standardTypes.forEach(type => {
+                    const div = document.createElement('div');
+                    div.className = 'area-type-item';
+                    const isChecked = selectedAreaTypes.includes(type);
+                    const safeId = type.replace(/[^a-zA-Z0-9]/g, '_');
+                    div.innerHTML = `
+                        <input type="checkbox" id="at_${safeId}" ${isChecked ? 'checked' : ''} 
+                               onchange="toggleAreaType('${type.replace(/'/g, "\\'")}', this.checked)">
+                        <label for="at_${safeId}">${type}</label>
+                    `;
+                    standardGrid.appendChild(div);
+                });
+            }
+            
+            // Render non-standard types
+            nonStandardGrid.innerHTML = '';
+            if (nonStandardTypes.length === 0) {
+                nonStandardSection.style.display = 'none';
+            } else {
+                nonStandardSection.style.display = 'block';
+                nonStandardTypes.forEach(type => {
+                    const div = document.createElement('div');
+                    div.className = 'area-type-item';
+                    const isChecked = selectedAreaTypes.includes(type);
+                    const safeId = type.replace(/[^a-zA-Z0-9]/g, '_');
+                    div.innerHTML = `
+                        <input type="checkbox" id="at_${safeId}" ${isChecked ? 'checked' : ''} 
+                               onchange="toggleAreaType('${type.replace(/'/g, "\\'")}', this.checked)">
+                        <label for="at_${safeId}">${type}</label>
+                    `;
+                    nonStandardGrid.appendChild(div);
+                });
+            }
         }
         
         function toggleAreaType(type, checked) {
@@ -952,14 +1090,53 @@
             }
         }
         
+        function selectAllStandard() {
+            standardTypes.forEach(type => {
+                if (!selectedAreaTypes.includes(type)) {
+                    selectedAreaTypes.push(type);
+                }
+            });
+            updateAreaTypeCheckboxes();
+        }
+        
+        function deselectAllStandard() {
+            selectedAreaTypes = selectedAreaTypes.filter(t => !standardTypes.includes(t));
+            updateAreaTypeCheckboxes();
+        }
+        
+        function selectAllNonStandard() {
+            nonStandardTypes.forEach(type => {
+                if (!selectedAreaTypes.includes(type)) {
+                    selectedAreaTypes.push(type);
+                }
+            });
+            updateAreaTypeCheckboxes();
+        }
+        
+        function deselectAllNonStandard() {
+            selectedAreaTypes = selectedAreaTypes.filter(t => !nonStandardTypes.includes(t));
+            updateAreaTypeCheckboxes();
+        }
+        
+        function updateAreaTypeCheckboxes() {
+            areaTypes.forEach(type => {
+                const safeId = type.replace(/[^a-zA-Z0-9]/g, '_');
+                const checkbox = document.getElementById(`at_${safeId}`);
+                if (checkbox) {
+                    checkbox.checked = selectedAreaTypes.includes(type);
+                }
+            });
+        }
+        
+        // Keep old functions for compatibility
         function selectAllAreaTypes() {
             selectedAreaTypes = [...areaTypes];
-            renderAreaTypes();
+            updateAreaTypeCheckboxes();
         }
         
         function deselectAllAreaTypes() {
             selectedAreaTypes = [];
-            renderAreaTypes();
+            updateAreaTypeCheckboxes();
         }
         
         function initializeFloorMappings() {
