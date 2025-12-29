@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HKS BOMA Calculator</title>
     
-    <!-- SheetJS Library from CDN -->
+    <!-- SheetJS Library for reading uploaded files -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+    <!-- ExcelJS Library for writing formatted Excel (preserves template styles) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -952,163 +954,138 @@
             }
             
             const arrayBuffer = await response.arrayBuffer();
-            const data = new Uint8Array(arrayBuffer);
-            const wb = XLSX.read(data, { type: 'array', cellStyles: true });
             
-            // Update project info in both sheets
-            if (wb.Sheets['HKS-BOMA-B']) {
-                wb.Sheets['HKS-BOMA-B']['A1'] = { t: 's', v: projectInfo.name };
-                wb.Sheets['HKS-BOMA-B']['A2'] = { t: 's', v: projectInfo.location };
-                wb.Sheets['HKS-BOMA-B']['A3'] = { t: 's', v: `HKS Project# ${projectInfo.number}` };
-            }
-            if (wb.Sheets['HKS-BOMA-A']) {
-                wb.Sheets['HKS-BOMA-A']['A1'] = { t: 's', v: projectInfo.name };
-                wb.Sheets['HKS-BOMA-A']['A2'] = { t: 's', v: projectInfo.location };
-                wb.Sheets['HKS-BOMA-A']['A3'] = { t: 's', v: `HKS Project# ${projectInfo.number}` };
-            }
+            // Use ExcelJS to load and modify template (preserves formatting!)
+            const workbook = new ExcelJS.Workbook();
+            await workbook.xlsx.load(arrayBuffer);
             
-            // Populate BOMA-B
-            populateBOMAMethodB(wb, floors, sourceFloorLookup);
+            const wsB = workbook.getWorksheet('HKS-BOMA-B');
+            const wsA = workbook.getWorksheet('HKS-BOMA-A');
+            const wsData = workbook.getWorksheet('Revit Data');
             
-            // Populate BOMA-A  
-            populateBOMAMethodA(wb, floors, sourceFloorLookup);
-            
-            // Populate Revit Data - clear existing and add new
-            const wsData = wb.Sheets['Revit Data'];
-            
-            // Clear existing data rows (keep header row 1)
-            const dataRange = XLSX.utils.decode_range(wsData['!ref'] || 'A1:D1');
-            for (let R = 1; R <= dataRange.e.r; R++) {
-                for (let C = 0; C <= 3; C++) {
-                    const cellAddr = XLSX.utils.encode_cell({ r: R, c: C });
-                    delete wsData[cellAddr];
-                }
-            }
-            
-            // Add new data
-            mappedData.forEach((row, idx) => {
-                const rowNum = idx + 2;
-                wsData[`A${rowNum}`] = { t: 's', v: row.FloorMap };
-                wsData[`B${rowNum}`] = { t: 's', v: row.Name };
-                wsData[`C${rowNum}`] = { t: 's', v: row['Area Scheme Name'] };
-                wsData[`D${rowNum}`] = { t: 'n', v: row.Area, z: '#,##0' };
-            });
-            wsData['!ref'] = `A1:D${mappedData.length + 1}`;
-            
-            // Update dates
+            // Update project info (preserves cell formatting)
             const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-            if (wb.Sheets['HKS-BOMA-B']['J2']) wb.Sheets['HKS-BOMA-B']['J2'].v = dateStr;
-            if (wb.Sheets['HKS-BOMA-A']['O2']) wb.Sheets['HKS-BOMA-A']['O2'].v = dateStr;
             
-            // Download
+            if (wsB) {
+                wsB.getCell('A1').value = projectInfo.name;
+                wsB.getCell('A2').value = projectInfo.location;
+                wsB.getCell('A3').value = `HKS Project# ${projectInfo.number}`;
+                wsB.getCell('J2').value = dateStr;
+                
+                // Populate BOMA-B data
+                populateBOMAMethodB_ExcelJS(wsB, floors);
+            }
+            
+            if (wsA) {
+                wsA.getCell('A1').value = projectInfo.name;
+                wsA.getCell('A2').value = projectInfo.location;
+                wsA.getCell('A3').value = `HKS Project# ${projectInfo.number}`;
+                wsA.getCell('O2').value = dateStr;
+                
+                // Populate BOMA-A data
+                populateBOMAMethodA_ExcelJS(wsA, floors);
+            }
+            
+            if (wsData) {
+                // Populate Revit Data (starting at row 2)
+                mappedData.forEach((row, idx) => {
+                    const rowNum = idx + 2;
+                    wsData.getCell(`A${rowNum}`).value = row.FloorMap;
+                    wsData.getCell(`B${rowNum}`).value = row.Name;
+                    wsData.getCell(`C${rowNum}`).value = row['Area Scheme Name'];
+                    wsData.getCell(`D${rowNum}`).value = row.Area;
+                });
+            }
+            
+            // Generate buffer and download
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
             const timestamp = new Date().toISOString().split('T')[0];
-            XLSX.writeFile(wb, `BOMA_Calculations_${timestamp}.xlsx`, { bookType: 'xlsx', cellStyles: true });
+            a.download = `BOMA_Calculations_${timestamp}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
         
-        function populateBOMAMethodB(wb, floors, sourceFloorLookup) {
-            const ws = wb.Sheets['HKS-BOMA-B'];
+        function populateBOMAMethodB_ExcelJS(ws, floors) {
             const startRow = 9;
-            
-            // Clear any existing data rows
-            for (let r = startRow; r <= 68; r++) {
-                for (let c = 0; c < 11; c++) {
-                    const cellAddr = XLSX.utils.encode_cell({ r: r - 1, c: c });
-                    delete ws[cellAddr];
-                }
-            }
+            const subRow = startRow + floors.length;
             
             floors.forEach((floor, idx) => {
                 const row = startRow + idx;
-                const rowStr = row.toString();
-                const sourceFloor = sourceFloorLookup[floor] || floor;
                 
-                // Formulas now reference the BUILDING FLOOR name (which exists in Revit Data)
-                ws['A' + rowStr] = { t: 's', v: floor };
-                ws['B' + rowStr] = { t: 'n', f: `SUMIF('Revit Data'!$A:$A,"${floor}",'Revit Data'!$D:$D)`, z: '#,##0' };
-                ws['C' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"PA")`, z: '#,##0' };
-                ws['D' + rowStr] = { t: 'n', f: `B${rowStr}-C${rowStr}`, z: '#,##0' };
-                ws['E' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"MVP")`, z: '#,##0' };
-                ws['F' + rowStr] = { t: 'n', f: `D${rowStr}-E${rowStr}`, z: '#,##0' };
-                ws['G' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA-BALC")`, z: '#,##0' };
-                ws['H' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA")`, z: '#,##0' };
-                const subRowRef = (startRow + floors.length).toString();
-                ws['I' + rowStr] = { t: 'n', f: `IF($H$${subRowRef}=0,0,($F$${subRowRef}-$G$${subRowRef})/$H$${subRowRef})`, z: '0.0000' };
-                ws['J' + rowStr] = { t: 'n', f: `G${rowStr}+(H${rowStr}*I${rowStr})`, z: '#,##0' };
+                // Set values and formulas (formatting is preserved from template)
+                ws.getCell(`A${row}`).value = floor;
+                ws.getCell(`B${row}`).value = { formula: `SUMIF('Revit Data'!$A:$A,"${floor}",'Revit Data'!$D:$D)` };
+                ws.getCell(`C${row}`).value = { formula: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"PA")` };
+                ws.getCell(`D${row}`).value = { formula: `B${row}-C${row}` };
+                ws.getCell(`E${row}`).value = { formula: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"MVP")` };
+                ws.getCell(`F${row}`).value = { formula: `D${row}-E${row}` };
+                ws.getCell(`G${row}`).value = { formula: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA-BALC")` };
+                ws.getCell(`H${row}`).value = { formula: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA")` };
+                ws.getCell(`I${row}`).value = { formula: `IF($H$${subRow}=0,0,($F$${subRow}-$G$${subRow})/$H$${subRow})` };
+                ws.getCell(`J${row}`).value = { formula: `G${row}+(H${row}*I${row})` };
             });
             
-            const subRow = startRow + floors.length;
+            // Subtotal row
             const lastDataRow = subRow - 1;
-            
-            ws['A' + subRow] = { t: 's', v: 'SubTotal' };
-            ws['B' + subRow] = { t: 'n', f: `SUM(B${startRow}:B${lastDataRow})`, z: '#,##0' };
-            ws['C' + subRow] = { t: 'n', f: `SUM(C${startRow}:C${lastDataRow})`, z: '#,##0' };
-            ws['D' + subRow] = { t: 'n', f: `SUM(D${startRow}:D${lastDataRow})`, z: '#,##0' };
-            ws['E' + subRow] = { t: 'n', f: `SUM(E${startRow}:E${lastDataRow})`, z: '#,##0' };
-            ws['F' + subRow] = { t: 'n', f: `SUM(F${startRow}:F${lastDataRow})`, z: '#,##0' };
-            ws['G' + subRow] = { t: 'n', f: `SUM(G${startRow}:G${lastDataRow})`, z: '#,##0' };
-            ws['H' + subRow] = { t: 'n', f: `SUM(H${startRow}:H${lastDataRow})`, z: '#,##0' };
-            ws['I' + subRow] = { t: 'n', f: `IF(H${subRow}=0,0,(F${subRow}-G${subRow})/H${subRow})`, z: '0.0000' };
-            ws['J' + subRow] = { t: 'n', f: `SUM(J${startRow}:J${lastDataRow})`, z: '#,##0' };
-            
-            ws['!ref'] = `A1:K${subRow}`;
+            ws.getCell(`A${subRow}`).value = 'SubTotal';
+            ws.getCell(`B${subRow}`).value = { formula: `SUM(B${startRow}:B${lastDataRow})` };
+            ws.getCell(`C${subRow}`).value = { formula: `SUM(C${startRow}:C${lastDataRow})` };
+            ws.getCell(`D${subRow}`).value = { formula: `SUM(D${startRow}:D${lastDataRow})` };
+            ws.getCell(`E${subRow}`).value = { formula: `SUM(E${startRow}:E${lastDataRow})` };
+            ws.getCell(`F${subRow}`).value = { formula: `SUM(F${startRow}:F${lastDataRow})` };
+            ws.getCell(`G${subRow}`).value = { formula: `SUM(G${startRow}:G${lastDataRow})` };
+            ws.getCell(`H${subRow}`).value = { formula: `SUM(H${startRow}:H${lastDataRow})` };
+            ws.getCell(`I${subRow}`).value = { formula: `IF(H${subRow}=0,0,(F${subRow}-G${subRow})/H${subRow})` };
+            ws.getCell(`J${subRow}`).value = { formula: `SUM(J${startRow}:J${lastDataRow})` };
         }
         
-        function populateBOMAMethodA(wb, floors, sourceFloorLookup) {
-            const ws = wb.Sheets['HKS-BOMA-A'];
+        function populateBOMAMethodA_ExcelJS(ws, floors) {
             const startRow = 9;
-            
-            // Clear any existing data rows
-            for (let r = startRow; r <= 68; r++) {
-                for (let c = 0; c < 16; c++) {
-                    const cellAddr = XLSX.utils.encode_cell({ r: r - 1, c: c });
-                    delete ws[cellAddr];
-                }
-            }
+            const subRow = startRow + floors.length;
             
             floors.forEach((floor, idx) => {
                 const row = startRow + idx;
-                const rowStr = row.toString();
-                const subRowRef = (startRow + floors.length).toString();
-                const sourceFloor = sourceFloorLookup[floor] || floor;
                 
-                // Formulas now reference the BUILDING FLOOR name
-                ws['A' + rowStr] = { t: 's', v: floor };
-                ws['B' + rowStr] = { t: 'n', f: `SUMIF('Revit Data'!$A:$A,"${floor}",'Revit Data'!$D:$D)`, z: '#,##0' };
-                ws['C' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"PA")`, z: '#,##0' };
-                ws['D' + rowStr] = { t: 'n', f: `B${rowStr}-C${rowStr}`, z: '#,##0' };
-                ws['E' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"MVP")`, z: '#,##0' };
-                ws['F' + rowStr] = { t: 'n', f: `D${rowStr}-E${rowStr}`, z: '#,##0' };
-                ws['G' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA-BALC")`, z: '#,##0' };
-                ws['H' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA")`, z: '#,##0' };
-                ws['I' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BSA")+SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BSA-DECK")`, z: '#,##0' };
-                ws['J' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"FSA")+SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BBC")`, z: '#,##0' };
-                ws['K' + rowStr] = { t: 'n', f: `IF(H${rowStr}=0,0,(H${rowStr}+J${rowStr})/H${rowStr})`, z: '0.0000' };
-                ws['L' + rowStr] = { t: 'n', f: `H${rowStr}*K${rowStr}`, z: '#,##0' };
-                ws['M' + rowStr] = { t: 'n', f: `IF(($F$${subRowRef}-$G$${subRowRef}-$I$${subRowRef})=0,0,($F$${subRowRef}-$G$${subRowRef})/($F$${subRowRef}-$G$${subRowRef}-$I$${subRowRef}))`, z: '0.0000' };
-                ws['N' + rowStr] = { t: 'n', f: `G${rowStr}+(L${rowStr}*M${rowStr})`, z: '#,##0' };
-                ws['O' + rowStr] = { t: 'n', f: `IF(H${rowStr}=0,0,N${rowStr}/H${rowStr})`, z: '0.0000' };
+                ws.getCell(`A${row}`).value = floor;
+                ws.getCell(`B${row}`).value = { formula: `SUMIF('Revit Data'!$A:$A,"${floor}",'Revit Data'!$D:$D)` };
+                ws.getCell(`C${row}`).value = { formula: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"PA")` };
+                ws.getCell(`D${row}`).value = { formula: `B${row}-C${row}` };
+                ws.getCell(`E${row}`).value = { formula: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"MVP")` };
+                ws.getCell(`F${row}`).value = { formula: `D${row}-E${row}` };
+                ws.getCell(`G${row}`).value = { formula: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA-BALC")` };
+                ws.getCell(`H${row}`).value = { formula: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA")` };
+                ws.getCell(`I${row}`).value = { formula: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BSA")+SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BSA-DECK")` };
+                ws.getCell(`J${row}`).value = { formula: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"FSA")+SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BBC")` };
+                ws.getCell(`K${row}`).value = { formula: `IF(H${row}=0,0,(H${row}+J${row})/H${row})` };
+                ws.getCell(`L${row}`).value = { formula: `H${row}*K${row}` };
+                ws.getCell(`M${row}`).value = { formula: `IF(($F$${subRow}-$G$${subRow}-$I$${subRow})=0,0,($F$${subRow}-$G$${subRow})/($F$${subRow}-$G$${subRow}-$I$${subRow}))` };
+                ws.getCell(`N${row}`).value = { formula: `G${row}+(L${row}*M${row})` };
+                ws.getCell(`O${row}`).value = { formula: `IF(H${row}=0,0,N${row}/H${row})` };
             });
             
-            const subRow = startRow + floors.length;
+            // Subtotal row
             const lastDataRow = subRow - 1;
-            
-            ws['A' + subRow] = { t: 's', v: 'SubTotal' };
-            ws['B' + subRow] = { t: 'n', f: `SUM(B${startRow}:B${lastDataRow})`, z: '#,##0' };
-            ws['C' + subRow] = { t: 'n', f: `SUM(C${startRow}:C${lastDataRow})`, z: '#,##0' };
-            ws['D' + subRow] = { t: 'n', f: `SUM(D${startRow}:D${lastDataRow})`, z: '#,##0' };
-            ws['E' + subRow] = { t: 'n', f: `SUM(E${startRow}:E${lastDataRow})`, z: '#,##0' };
-            ws['F' + subRow] = { t: 'n', f: `SUM(F${startRow}:F${lastDataRow})`, z: '#,##0' };
-            ws['G' + subRow] = { t: 'n', f: `SUM(G${startRow}:G${lastDataRow})`, z: '#,##0' };
-            ws['H' + subRow] = { t: 'n', f: `SUM(H${startRow}:H${lastDataRow})`, z: '#,##0' };
-            ws['I' + subRow] = { t: 'n', f: `SUM(I${startRow}:I${lastDataRow})`, z: '#,##0' };
-            ws['J' + subRow] = { t: 'n', f: `SUM(J${startRow}:J${lastDataRow})`, z: '#,##0' };
-            ws['K' + subRow] = { t: 'n', f: `IF(H${subRow}=0,0,(H${subRow}+J${subRow})/H${subRow})`, z: '0.0000' };
-            ws['L' + subRow] = { t: 'n', f: `SUM(L${startRow}:L${lastDataRow})`, z: '#,##0' };
-            ws['M' + subRow] = { t: 'n', f: `IF((F${subRow}-G${subRow}-I${subRow})=0,0,(F${subRow}-G${subRow})/(F${subRow}-G${subRow}-I${subRow}))`, z: '0.0000' };
-            ws['N' + subRow] = { t: 'n', f: `SUM(N${startRow}:N${lastDataRow})`, z: '#,##0' };
-            ws['O' + subRow] = { t: 'n', f: `IF(H${subRow}=0,0,N${subRow}/H${subRow})`, z: '0.0000' };
-            
-            ws['!ref'] = `A1:P${subRow}`;
+            ws.getCell(`A${subRow}`).value = 'SubTotal';
+            ws.getCell(`B${subRow}`).value = { formula: `SUM(B${startRow}:B${lastDataRow})` };
+            ws.getCell(`C${subRow}`).value = { formula: `SUM(C${startRow}:C${lastDataRow})` };
+            ws.getCell(`D${subRow}`).value = { formula: `SUM(D${startRow}:D${lastDataRow})` };
+            ws.getCell(`E${subRow}`).value = { formula: `SUM(E${startRow}:E${lastDataRow})` };
+            ws.getCell(`F${subRow}`).value = { formula: `SUM(F${startRow}:F${lastDataRow})` };
+            ws.getCell(`G${subRow}`).value = { formula: `SUM(G${startRow}:G${lastDataRow})` };
+            ws.getCell(`H${subRow}`).value = { formula: `SUM(H${startRow}:H${lastDataRow})` };
+            ws.getCell(`I${subRow}`).value = { formula: `SUM(I${startRow}:I${lastDataRow})` };
+            ws.getCell(`J${subRow}`).value = { formula: `SUM(J${startRow}:J${lastDataRow})` };
+            ws.getCell(`K${subRow}`).value = { formula: `IF(H${subRow}=0,0,(H${subRow}+J${subRow})/H${subRow})` };
+            ws.getCell(`L${subRow}`).value = { formula: `SUM(L${startRow}:L${lastDataRow})` };
+            ws.getCell(`M${subRow}`).value = { formula: `IF((F${subRow}-G${subRow}-I${subRow})=0,0,(F${subRow}-G${subRow})/(F${subRow}-G${subRow}-I${subRow}))` };
+            ws.getCell(`N${subRow}`).value = { formula: `SUM(N${startRow}:N${lastDataRow})` };
+            ws.getCell(`O${subRow}`).value = { formula: `IF(H${subRow}=0,0,N${subRow}/H${subRow})` };
         }
         
         function createBOMAMethodB(wb, floors, sourceFloorLookup, projectInfo) {
