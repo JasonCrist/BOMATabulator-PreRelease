@@ -462,7 +462,14 @@
     <div class="container">
         <div class="header">
             <h1><img src="https://raw.githubusercontent.com/JasonCrist/BOMATabulator-PreRelease/main/HKS-Logo-White_N2.png" alt="HKS" style="height: 0.82em; vertical-align: -0.05em; margin-right: 10px;">BOMA Tabulator</h1>
-            <p>Convert Revit area exports to BOMA-compliant calculation spreadsheets</p>
+            <p id="headerSubtitle">This tool converts Revit area exports to a HKS Formatted BOMA spreadsheet.</p>
+            <p id="headerSteps" style="margin-top: 12px; font-size: 13px; opacity: 0.85; line-height: 1.8;">
+                <strong>Step 1:</strong> Upload your Revit export file<br>
+                <strong>Step 2:</strong> Enter project information<br>
+                <strong>Step 3:</strong> Select area types to include<br>
+                <strong>Step 4:</strong> Map and reorder building floors<br>
+                <strong>Step 5:</strong> Generate your BOMA spreadsheet
+            </p>
         </div>
         
         <div class="content">
@@ -1129,6 +1136,12 @@
             document.querySelectorAll('.step').forEach(el => el.classList.add('hidden'));
             const stepId = n === 2 ? 'step2' : n === 3 ? 'step3' : n === 4 ? 'step4' : 'step5';
             document.getElementById(stepId).classList.remove('hidden');
+            
+            // Hide header subtitle and steps after step 1
+            const subtitle = document.getElementById('headerSubtitle');
+            const steps = document.getElementById('headerSteps');
+            if (subtitle) subtitle.style.display = 'none';
+            if (steps) steps.style.display = 'none';
         }
         
         function proceedToStep3() {
