@@ -1484,7 +1484,18 @@
                           `• HKS-BOMA-A - ${allFloors.length} floors\n`;
                     
                     if (selectedNonStd.length > 0) {
-                        successMsg += `• NON-BOMA Areas - ${allFloors.length} floors × ${selectedNonStd.length} types\n`;
+                        // Count floors that actually have non-BOMA data
+                        const nonBomaFloorCount = allFloors.filter(floor => 
+                            mappedData.some(row => 
+                                row.FloorMap === floor && 
+                                selectedNonStd.includes(row.Name) &&
+                                row.Area > 0
+                            )
+                        ).length;
+                        
+                        if (nonBomaFloorCount > 0) {
+                            successMsg += `• NON-BOMA Areas - ${nonBomaFloorCount} floors × ${selectedNonStd.length} types\n`;
+                        }
                     }
                     
                     successMsg += `• Revit Data - ${mappedData.length} rows\n` +
@@ -1606,13 +1617,32 @@
                         console.log('Could not remove NON-BOMA sheet, leaving blank');
                     }
                 } else {
-                    // Populate NON-BOMA Areas tab
-                    wsNonBoma.getCell('A1').value = projectInfo.name;
-                    wsNonBoma.getCell('A2').value = projectInfo.location;
-                    wsNonBoma.getCell('A3').value = `HKS Project# ${projectInfo.number}`;
-                    wsNonBoma.getCell('B2').value = dateStr;
+                    // Filter floors to only those with data for selected non-standard types
+                    const floorsWithNonBomaData = floors.filter(floor => {
+                        // Check if this floor has any data for selected non-standard types
+                        return mappedData.some(row => 
+                            row.FloorMap === floor && 
+                            selectedNonStandard.includes(row.Name) &&
+                            row.Area > 0
+                        );
+                    });
                     
-                    populateNonBOMATab_ExcelJS(wsNonBoma, floors, selectedNonStandard);
+                    if (floorsWithNonBomaData.length === 0) {
+                        // No floors have non-BOMA data - remove the sheet
+                        try {
+                            workbook.removeWorksheet(wsNonBoma.id);
+                        } catch (e) {
+                            console.log('Could not remove NON-BOMA sheet, leaving blank');
+                        }
+                    } else {
+                        // Populate NON-BOMA Areas tab
+                        wsNonBoma.getCell('A1').value = projectInfo.name;
+                        wsNonBoma.getCell('A2').value = projectInfo.location;
+                        wsNonBoma.getCell('A3').value = `HKS Project# ${projectInfo.number}`;
+                        wsNonBoma.getCell('B2').value = dateStr;
+                        
+                        populateNonBOMATab_ExcelJS(wsNonBoma, floorsWithNonBomaData, selectedNonStandard);
+                    }
                 }
             }
             
@@ -1640,13 +1670,13 @@
                 
                 // Set values and formulas (formatting is preserved from template)
                 ws.getCell(`A${row}`).value = floor;
-                ws.getCell(`B${row}`).value = { formula: `SUMIF('Revit Data'!$A:$A,"${floor}",'Revit Data'!$D:$D)` };
-                ws.getCell(`C${row}`).value = { formula: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"PA")` };
+                ws.getCell(`B${row}`).value = { formula: `SUMIF('Revit Data'!$A:$A,"${floor}",'Revit Data'!$C:$C)` };
+                ws.getCell(`C${row}`).value = { formula: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"PA")` };
                 ws.getCell(`D${row}`).value = { formula: `B${row}-C${row}` };
-                ws.getCell(`E${row}`).value = { formula: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"MVP")` };
+                ws.getCell(`E${row}`).value = { formula: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"MVP")` };
                 ws.getCell(`F${row}`).value = { formula: `D${row}-E${row}` };
-                ws.getCell(`G${row}`).value = { formula: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA-BALC")` };
-                ws.getCell(`H${row}`).value = { formula: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA")` };
+                ws.getCell(`G${row}`).value = { formula: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA-BALC")` };
+                ws.getCell(`H${row}`).value = { formula: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA")` };
                 ws.getCell(`I${row}`).value = { formula: `IF($H$${subTotalRow}=0,0,($F$${subTotalRow}-$G$${subTotalRow})/$H$${subTotalRow})` };
                 ws.getCell(`J${row}`).value = { formula: `G${row}+(H${row}*I${row})` };
             });
@@ -1696,15 +1726,15 @@
                 const row = startRow + idx;
                 
                 ws.getCell(`A${row}`).value = floor;
-                ws.getCell(`B${row}`).value = { formula: `SUMIF('Revit Data'!$A:$A,"${floor}",'Revit Data'!$D:$D)` };
-                ws.getCell(`C${row}`).value = { formula: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"PA")` };
+                ws.getCell(`B${row}`).value = { formula: `SUMIF('Revit Data'!$A:$A,"${floor}",'Revit Data'!$C:$C)` };
+                ws.getCell(`C${row}`).value = { formula: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"PA")` };
                 ws.getCell(`D${row}`).value = { formula: `B${row}-C${row}` };
-                ws.getCell(`E${row}`).value = { formula: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"MVP")` };
+                ws.getCell(`E${row}`).value = { formula: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"MVP")` };
                 ws.getCell(`F${row}`).value = { formula: `D${row}-E${row}` };
-                ws.getCell(`G${row}`).value = { formula: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA-BALC")` };
-                ws.getCell(`H${row}`).value = { formula: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA")` };
-                ws.getCell(`I${row}`).value = { formula: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BSA")+SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BSA-DECK")` };
-                ws.getCell(`J${row}`).value = { formula: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"FSA")+SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BBC")` };
+                ws.getCell(`G${row}`).value = { formula: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA-BALC")` };
+                ws.getCell(`H${row}`).value = { formula: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA")` };
+                ws.getCell(`I${row}`).value = { formula: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BSA")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BSA-DECK")` };
+                ws.getCell(`J${row}`).value = { formula: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"FSA")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BBC")` };
                 ws.getCell(`K${row}`).value = { formula: `IF(H${row}=0,0,(H${row}+J${row})/H${row})` };
                 ws.getCell(`L${row}`).value = { formula: `H${row}*K${row}` };
                 ws.getCell(`M${row}`).value = { formula: `IF(($F$${subTotalRow}-$G$${subTotalRow}-$I$${subTotalRow})=0,0,($F$${subTotalRow}-$G$${subTotalRow})/($F$${subTotalRow}-$G$${subTotalRow}-$I$${subTotalRow}))` };
@@ -1939,13 +1969,13 @@
                 
                 // Formulas reference the building floor name (data is duplicated in Revit Data)
                 ws['A' + rowStr] = { t: 's', v: floor };
-                ws['B' + rowStr] = { t: 'n', f: `SUMIF('Revit Data'!$A:$A,"${floor}",'Revit Data'!$D:$D)`, z: '#,##0' };
-                ws['C' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"PA")`, z: '#,##0' };
+                ws['B' + rowStr] = { t: 'n', f: `SUMIF('Revit Data'!$A:$A,"${floor}",'Revit Data'!$C:$C)`, z: '#,##0' };
+                ws['C' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"PA")`, z: '#,##0' };
                 ws['D' + rowStr] = { t: 'n', f: `B${rowStr}-C${rowStr}`, z: '#,##0' };
-                ws['E' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"MVP")`, z: '#,##0' };
+                ws['E' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"MVP")`, z: '#,##0' };
                 ws['F' + rowStr] = { t: 'n', f: `D${rowStr}-E${rowStr}`, z: '#,##0' };
-                ws['G' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA-BALC")`, z: '#,##0' };
-                ws['H' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA")`, z: '#,##0' };
+                ws['G' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA-BALC")`, z: '#,##0' };
+                ws['H' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA")`, z: '#,##0' };
                 
                 const subRowRef = (startRow + floors.length).toString();
                 ws['I' + rowStr] = { t: 'n', f: `IF($H$${subRowRef}=0,0,($F$${subRowRef}-$G$${subRowRef})/$H$${subRowRef})`, z: '0.0000' };
@@ -2032,15 +2062,15 @@
                 const subRowRef = (startRow + floors.length).toString();
                 
                 ws['A' + rowStr] = { t: 's', v: floor };
-                ws['B' + rowStr] = { t: 'n', f: `SUMIF('Revit Data'!$A:$A,"${floor}",'Revit Data'!$D:$D)`, z: '#,##0' };
-                ws['C' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"PA")`, z: '#,##0' };
+                ws['B' + rowStr] = { t: 'n', f: `SUMIF('Revit Data'!$A:$A,"${floor}",'Revit Data'!$C:$C)`, z: '#,##0' };
+                ws['C' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"PA")`, z: '#,##0' };
                 ws['D' + rowStr] = { t: 'n', f: `B${rowStr}-C${rowStr}`, z: '#,##0' };
-                ws['E' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"MVP")`, z: '#,##0' };
+                ws['E' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"MVP")`, z: '#,##0' };
                 ws['F' + rowStr] = { t: 'n', f: `D${rowStr}-E${rowStr}`, z: '#,##0' };
-                ws['G' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA-BALC")`, z: '#,##0' };
-                ws['H' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA")`, z: '#,##0' };
-                ws['I' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BSA")+SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BSA-DECK")`, z: '#,##0' };
-                ws['J' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"FSA")+SUMIFS('Revit Data'!$D:$D,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BBC")`, z: '#,##0' };
+                ws['G' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA-BALC")`, z: '#,##0' };
+                ws['H' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"TA")`, z: '#,##0' };
+                ws['I' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BSA")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BSA-DECK")`, z: '#,##0' };
+                ws['J' + rowStr] = { t: 'n', f: `SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"FSA")+SUMIFS('Revit Data'!$C:$C,'Revit Data'!$A:$A,"${floor}",'Revit Data'!$B:$B,"BBC")`, z: '#,##0' };
                 ws['K' + rowStr] = { t: 'n', f: `IF(H${rowStr}=0,0,(H${rowStr}+J${rowStr})/H${rowStr})`, z: '0.0000' };
                 ws['L' + rowStr] = { t: 'n', f: `H${rowStr}*K${rowStr}`, z: '#,##0' };
                 ws['M' + rowStr] = { t: 'n', f: `IF(($F$${subRowRef}-$G$${subRowRef}-$I$${subRowRef})=0,0,($F$${subRowRef}-$G$${subRowRef})/($F$${subRowRef}-$G$${subRowRef}-$I$${subRowRef}))`, z: '0.0000' };
