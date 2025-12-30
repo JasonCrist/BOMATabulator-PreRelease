@@ -520,7 +520,7 @@
             border: 1px solid var(--border);
             border-radius: 8px;
             margin-bottom: 20px;
-            overflow: hidden;
+            overflow: visible;
         }
         .collapsible-header {
             background: #f5f5f5;
@@ -532,6 +532,10 @@
             font-weight: 600;
             color: var(--hks-grey);
             user-select: none;
+            border-radius: 8px;
+        }
+        .collapsible-section.expanded .collapsible-header {
+            border-radius: 8px 8px 0 0;
         }
         .collapsible-header:hover {
             background: #ebebeb;
@@ -546,11 +550,14 @@
         .collapsible-content {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.3s ease;
+            transition: max-height 0.3s ease, overflow 0s 0.3s;
             background: white;
+            border-radius: 0 0 8px 8px;
         }
         .collapsible-section.expanded .collapsible-content {
             max-height: 3000px;
+            overflow: visible;
+            transition: max-height 0.3s ease, overflow 0s 0s;
         }
         .collapsible-inner {
             padding: 15px;
