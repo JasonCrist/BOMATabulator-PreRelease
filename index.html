@@ -516,11 +516,22 @@
         }
         
         /* Collapsible sections */
+        .collapsible-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
         .collapsible-section {
             border: 1px solid var(--border);
             border-radius: 8px;
-            margin-bottom: 20px;
             overflow: hidden;
+            flex: 1;
+            min-width: 200px;
+            transition: flex-basis 0.3s ease;
+        }
+        .collapsible-section.expanded {
+            flex-basis: 100%;
         }
         .collapsible-header {
             background: #f5f5f5;
@@ -734,6 +745,9 @@
             <!-- Step 1: Upload -->
             <div class="step">
                 
+                <!-- Collapsible Help Sections -->
+                <div class="collapsible-row" id="collapsibleHelpSections">
+                
                 <!-- Collapsible: Understanding BOMA Basics -->
                 <div class="collapsible-section" id="bomaBasicsSection">
                     <div class="collapsible-header" onclick="toggleCollapsible('bomaBasicsSection')">
@@ -925,6 +939,8 @@
                         </div>
                     </div>
                 </div>
+                
+                </div><!-- End collapsible-row -->
                 
                 <!-- Step 1 Header -->
                 <div class="step-header">
@@ -1668,10 +1684,19 @@
             }
         }
         
-        // Toggle collapsible sections
+        // Toggle collapsible sections (accordion behavior - only one open at a time)
         function toggleCollapsible(sectionId) {
             const section = document.getElementById(sectionId);
             if (section) {
+                const isExpanding = !section.classList.contains('expanded');
+                
+                // Collapse all sections in the same row
+                if (isExpanding) {
+                    document.querySelectorAll('.collapsible-row .collapsible-section.expanded').forEach(el => {
+                        el.classList.remove('expanded');
+                    });
+                }
+                
                 section.classList.toggle('expanded');
             }
         }
@@ -1684,14 +1709,10 @@
             // Hide header subtitle, workflow steps, and collapsible sections after step 1
             const subtitle = document.getElementById('headerSubtitle');
             const steps = document.getElementById('workflowSteps');
-            const bomaBasics = document.getElementById('bomaBasicsSection');
-            const revitAreaPlans = document.getElementById('revitAreaPlansSection');
-            const revitExport = document.getElementById('revitExportSection');
+            const collapsibleRow = document.getElementById('collapsibleHelpSections');
             if (subtitle) subtitle.style.display = 'none';
             if (steps) steps.style.display = 'none';
-            if (bomaBasics) bomaBasics.style.display = 'none';
-            if (revitAreaPlans) revitAreaPlans.style.display = 'none';
-            if (revitExport) revitExport.style.display = 'none';
+            if (collapsibleRow) collapsibleRow.style.display = 'none';
         }
         
         // Keyword mapping for smart suggestions
