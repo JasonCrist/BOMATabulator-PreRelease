@@ -514,6 +514,206 @@
         .revit-note strong {
             color: #f57c00;
         }
+        
+        /* Collapsible sections */
+        .collapsible-section {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .collapsible-header {
+            background: #f5f5f5;
+            padding: 12px 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: var(--hks-grey);
+            user-select: none;
+        }
+        .collapsible-header:hover {
+            background: #ebebeb;
+        }
+        .collapsible-icon {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+        .collapsible-section.expanded .collapsible-icon {
+            transform: rotate(180deg);
+        }
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: white;
+        }
+        .collapsible-section.expanded .collapsible-content {
+            max-height: 3000px;
+        }
+        .collapsible-inner {
+            padding: 15px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .collapsible-inner h4 {
+            color: var(--hks-grey);
+            margin: 20px 0 10px 0;
+            font-size: 15px;
+        }
+        .collapsible-inner h4:first-child {
+            margin-top: 0;
+        }
+        .collapsible-inner ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .collapsible-inner li {
+            margin: 6px 0;
+        }
+        .collapsible-inner p {
+            margin: 10px 0;
+        }
+        
+        /* Info table */
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 13px;
+        }
+        .info-table th {
+            background: var(--hks-grey);
+            color: white;
+            padding: 8px 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .info-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #eee;
+        }
+        .info-table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        .info-table code {
+            background: #e8f5e9;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: 600;
+            color: #2e7d32;
+        }
+        
+        /* Tooltips */
+        .tooltip-container {
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: help;
+            margin-left: 5px;
+            vertical-align: middle;
+        }
+        .tooltip-text {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            z-index: 100;
+            background: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: normal;
+            width: 250px;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: opacity 0.2s ease;
+            line-height: 1.4;
+        }
+        .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+        .tooltip-container:hover .tooltip-text,
+        .tooltip-container:focus .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Instruction images */
+        .instruction-image {
+            max-width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        .image-placeholder {
+            background: #f0f0f0;
+            border: 2px dashed #ccc;
+            border-radius: 6px;
+            padding: 30px;
+            text-align: center;
+            color: #999;
+            margin: 10px 0;
+        }
+        
+        /* Step numbers in instructions */
+        .instruction-step {
+            display: flex;
+            align-items: flex-start;
+            margin: 10px 0;
+        }
+        .instruction-step-num {
+            background: var(--accent);
+            color: white;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        
+        /* Note boxes */
+        .note-box {
+            background: #e3f2fd;
+            border-left: 4px solid var(--accent);
+            padding: 10px 15px;
+            margin: 15px 0;
+            font-size: 13px;
+            border-radius: 0 6px 6px 0;
+        }
+        .note-box.warning {
+            background: #fff8e1;
+            border-left-color: #ff9800;
+        }
+        .note-box.success {
+            background: #e8f5e9;
+            border-left-color: #4caf50;
+        }
     </style>
 </head>
 <body>
@@ -539,21 +739,180 @@
                     <div class="step-title">Upload Revit Export</div>
                 </div>
                 
-                <div class="abbreviation-guide" style="background: #f5f5f5; border: 1px solid var(--border); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
-                    <div style="font-weight: 600; margin-bottom: 10px; color: var(--hks-grey);">📋 Recommended Revit Area Type Names</div>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 6px; font-size: 13px;">
-                        <div><strong>TA</strong> – Tenant Area</div>
-                        <div><strong>TA-BALC</strong> – Exterior Tenant Balcony</div>
-                        <div><strong>PA</strong> – Parking Area (includes Storage)</div>
-                        <div><strong>MVP</strong> – Major Vertical Penetration (stairs, elevators, shafts)</div>
-                        <div><strong>BSA</strong> – Building Service Area (lobbies, fitness, lounges)</div>
-                        <div><strong>BSA-DECK</strong> – Exterior Building Service Deck</div>
-                        <div><strong>FSA</strong> – Floor Service Area (restrooms, telecom, mech rooms)</div>
-                        <div><strong>BBC</strong> – Base Building Circulation (common corridors)</div>
+                <!-- Collapsible: Understanding BOMA Basics -->
+                <div class="collapsible-section" id="bomaBasicsSection">
+                    <div class="collapsible-header" onclick="toggleCollapsible('bomaBasicsSection')">
+                        <span>📘 Understanding BOMA Basics</span>
+                        <span class="collapsible-icon">▼</span>
                     </div>
-                    <div style="margin-top: 10px; font-size: 12px; color: #666;">Using these abbreviations in Revit will streamline the import process.</div>
+                    <div class="collapsible-content">
+                        <div class="collapsible-inner">
+                            <h4>What is BOMA?</h4>
+                            <p>BOMA (Building Owners and Managers Association) provides a standardized method for measuring floor area in commercial buildings. The 2024 standard allows measurements within 2% accuracy.</p>
+                            <p style="font-size: 13px;"><a href="https://hksinc.sharepoint.com/sites/trg/SitePages/MadCAD.aspx" target="_blank" style="color: var(--accent);">📖 Access the official BOMA 2024 standard on MadCAD</a></p>
+                            
+                            <h4>Key Concepts</h4>
+                            <ul>
+                                <li><strong>Rentable SF</strong> = Gross Area − Floor Penetrations (holes in the floor)</li>
+                                <li><strong>Efficiency %</strong> = Ratio of Rentable to Gross Area</li>
+                                <li><strong>Load Factor</strong> = Your share of building common areas (amenities, corridors, etc.)</li>
+                            </ul>
+                            
+                            <h4>Area Type Categories ("Buckets")</h4>
+                            <div class="note-box">
+                                <strong>ⓘ Note:</strong> These abbreviations differ slightly from the official BOMA standard to help users and clients better understand the categories.
+                            </div>
+                            <table class="info-table">
+                                <thead>
+                                    <tr>
+                                        <th>Abbrev</th>
+                                        <th>Full Name</th>
+                                        <th>What's Included</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td><code>TA</code></td><td>Tenant Area</td><td>Leasable space on each floor</td></tr>
+                                    <tr><td><code>TA-BALC</code></td><td>Tenant Balcony</td><td>Exterior balconies (rentable but no load factor applied)</td></tr>
+                                    <tr><td><code>PA</code></td><td>Parking Area</td><td>Parking and storage areas (excluded from load calculations)</td></tr>
+                                    <tr><td><code>MVP</code></td><td>Major Vertical Penetration</td><td>Stairs, elevators, shafts (includes shaft walls)</td></tr>
+                                    <tr><td><code>BSA</code></td><td>Building Service Area</td><td>Lobbies, fitness centers, lounges, building-wide mechanical</td></tr>
+                                    <tr><td><code>BSA-DECK</code></td><td>Building Service Deck</td><td>Exterior amenity decks</td></tr>
+                                    <tr><td><code>FSA</code></td><td>Floor Service Area</td><td>Restrooms, telecom closets, mechanical rooms serving each floor</td></tr>
+                                    <tr><td><code>BBC</code></td><td>Base Building Circulation</td><td>Common corridors on multi-tenant floors</td></tr>
+                                </tbody>
+                            </table>
+                            
+                            <h4>Method A vs Method B</h4>
+                            <ul>
+                                <li><strong>Method B (Recommended):</strong> Simpler calculation, suitable for most projects</li>
+                                <li><strong>Method A (Legacy):</strong> More complex, granular allocation used in older versions of BOMA</li>
+                            </ul>
+                            
+                            <h4>Measurement Guidelines within Revit</h4>
+                            <ul>
+                                <li>Measure to <strong>inside face of glass</strong> at exterior walls</li>
+                                <li>For solid walls: measure to inside face of the <strong>dominant portion</strong> (from 8' down)</li>
+                                <li>Group area boundary lines in Revit to avoid accidentally moving walls</li>
+                                <li>Label charts as <strong>"Preliminary"</strong> and <strong>"Modified"</strong> as appropriate</li>
+                            </ul>
+                            
+                            <h4>Tips for Special Cases</h4>
+                            <ul>
+                                <li><strong>Retail spaces:</strong> Ask the developer how to handle—retailers typically don't want add-on factors. Consider pulling retail out as a separate number.</li>
+                                <li><strong>Balconies:</strong> Rentable area but without load factor applied. (This is as of BOMA 2024)</li>
+                                <li><strong>Parking (& Storage), & MVP:</strong> Excluded from load calculations</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
                 
+                <!-- Collapsible: Exporting from Revit -->
+                <div class="collapsible-section" id="revitExportSection">
+                    <div class="collapsible-header" onclick="toggleCollapsible('revitExportSection')">
+                        <span>📤 Exporting from Revit</span>
+                        <span class="collapsible-icon">▼</span>
+                    </div>
+                    <div class="collapsible-content">
+                        <div class="collapsible-inner">
+                            <h4>Prerequisites</h4>
+                            <p>Before exporting, ensure you have:</p>
+                            <ul>
+                                <li>Area boundaries drawn per BOMA standards. Reference diagrams provided in BOMA or the animated explanation diagrams below.</li>
+                                <li>Each area assigned an abbreviation per HKS methods (TA, MVP, BSA, etc.)</li>
+                                <li>A BOMA Area Scheme set up in Revit</li>
+                            </ul>
+                            
+                            <h4>Step 1: Verify Your Area Scheme</h4>
+                            <div class="instruction-step">
+                                <span class="instruction-step-num">1</span>
+                                <span>Go to <strong>Room & Area</strong> dropdown</span>
+                            </div>
+                            <div class="instruction-step">
+                                <span class="instruction-step-num">2</span>
+                                <span>Select <strong>Area and Volume Computations</strong></span>
+                            </div>
+                            <div class="instruction-step">
+                                <span class="instruction-step-num">3</span>
+                                <span>Confirm your BOMA area scheme exists (or click <strong>New</strong> to create one)</span>
+                            </div>
+                            <div class="tooltip-container">
+                                <span class="tooltip-icon">i</span>
+                                <span class="tooltip-text">Name your scheme descriptively, e.g., "BOMA 2024 - Office"</span>
+                            </div>
+                            <img src="https://raw.githubusercontent.com/JasonCrist/BOMATabulator-PreRelease/main/revit-step1-area-scheme.png" alt="Area and Volume Computations dialog" class="instruction-image">
+                            
+                            <h4>Step 2: Open Spreadsheet Link</h4>
+                            <div class="instruction-step">
+                                <span class="instruction-step-num">1</span>
+                                <span>Click the <strong>Express Tools</strong> tab</span>
+                            </div>
+                            <div class="instruction-step">
+                                <span class="instruction-step-num">2</span>
+                                <span>Click <strong>Spreadsheet Link</strong> (green "SL" icon)</span>
+                            </div>
+                            <div class="tooltip-container">
+                                <span class="tooltip-icon">i</span>
+                                <span class="tooltip-text">This is a CTC BIM Project Suite tool. If you don't see it, contact your BIM manager.</span>
+                            </div>
+                            <img src="https://raw.githubusercontent.com/JasonCrist/BOMATabulator-PreRelease/main/revit-step2-express-tools.png" alt="Express Tools ribbon with Spreadsheet Link" class="instruction-image">
+                            
+                            <h4>Step 3: Configure Export Settings</h4>
+                            <div class="instruction-step">
+                                <span class="instruction-step-num">1</span>
+                                <span>In the Settings dialog, select <strong>Areas</strong> from Available Categories</span>
+                            </div>
+                            <div class="instruction-step">
+                                <span class="instruction-step-num">2</span>
+                                <span>Check <strong>"Hide unit symbol"</strong></span>
+                            </div>
+                            <div class="instruction-step">
+                                <span class="instruction-step-num">3</span>
+                                <span>From Available Parameters, add in order: <strong>Level</strong>, <strong>Name</strong>, <strong>Area</strong></span>
+                            </div>
+                            <div class="instruction-step">
+                                <span class="instruction-step-num">4</span>
+                                <span>Click <strong>Save Settings → To Project</strong> (for easy re-export later)</span>
+                            </div>
+                            <div class="tooltip-container">
+                                <span class="tooltip-icon">i</span>
+                                <span class="tooltip-text">Next time you export, use "Load Settings → From Project" to skip this setup.</span>
+                            </div>
+                            <img src="https://raw.githubusercontent.com/JasonCrist/BOMATabulator-PreRelease/main/revit-step3-settings.png" alt="Spreadsheet Link Settings dialog" class="instruction-image">
+                            
+                            <h4>Step 4: Export and Save</h4>
+                            <div class="instruction-step">
+                                <span class="instruction-step-num">1</span>
+                                <span>Click <strong>Save</strong> in the Spreadsheet Link window</span>
+                            </div>
+                            <div class="instruction-step">
+                                <span class="instruction-step-num">2</span>
+                                <span>Choose a location and filename</span>
+                            </div>
+                            <div class="instruction-step">
+                                <span class="instruction-step-num">3</span>
+                                <span>When prompted, click <strong>Yes</strong> to open in Excel</span>
+                            </div>
+                            <div class="instruction-step">
+                                <span class="instruction-step-num">4</span>
+                                <span><strong>Important:</strong> Save the file again as .xlsx in Excel before closing</span>
+                            </div>
+                            <div class="tooltip-container">
+                                <span class="tooltip-icon">i</span>
+                                <span class="tooltip-text">Re-saving in Excel prevents compatibility errors when importing to the BOMA Tabulator.</span>
+                            </div>
+                            <img src="https://raw.githubusercontent.com/JasonCrist/BOMATabulator-PreRelease/main/revit-step4-export.png" alt="Spreadsheet Link export preview" class="instruction-image">
+                            
+                            <h4>What to Expect</h4>
+                            <p>Your exported file will have columns for Level, Name, and Area. You may see:</p>
+                            <ul>
+                                <li>An <strong>(Instance)</strong> row near the top—this is normal and will be filtered out automatically</li>
+                                <li>A blank row—also filtered out automatically</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Upload Zone -->
                 <div class="upload-zone" id="uploadZone">
                     <div class="upload-icon">📁</div>
                     <div class="upload-text">Click to browse or drag and drop</div>
@@ -1277,6 +1636,14 @@
             }
         }
         
+        // Toggle collapsible sections
+        function toggleCollapsible(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.classList.toggle('expanded');
+            }
+        }
+        
         function showStep(n) {
             document.querySelectorAll('.step').forEach(el => el.classList.add('hidden'));
             const stepId = n === 2 ? 'step2' : n === 3 ? 'step3' : n === 4 ? 'step4' : n === 5 ? 'step5' : 'step6';
@@ -1687,59 +2054,17 @@
                     };
                 });
                 
-                // Check if a table named "RevitData" exists
-                let hasTable = false;
-                let revitTable = null;
-                
-                try {
-                    // ExcelJS stores tables in worksheet.tables object
-                    if (wsData.tables) {
-                        for (const tableName in wsData.tables) {
-                            if (tableName.toLowerCase() === 'revitdata' || 
-                                wsData.tables[tableName].name?.toLowerCase() === 'revitdata') {
-                                hasTable = true;
-                                revitTable = wsData.tables[tableName];
-                                break;
-                            }
-                        }
-                    }
-                } catch (e) {
-                    console.log('Table check error:', e);
-                }
-                
-                if (hasTable && revitTable) {
-                    // Table exists - add data rows to the table
-                    console.log('Found RevitData table, adding rows to table');
-                    
-                    // Write data starting at row 2 (after header in row 1)
-                    dataRows.forEach((row, idx) => {
-                        const rowNum = idx + 2;
-                        wsData.getCell(`A${rowNum}`).value = row.FloorMap;
-                        wsData.getCell(`B${rowNum}`).value = row.Name;
-                        wsData.getCell(`C${rowNum}`).value = row.Area;
-                        wsData.getCell(`D${rowNum}`).value = row['NON BOMA Areas'];
-                        wsData.getCell(`E${rowNum}`).value = row['Area Scheme Name'];
-                    });
-                    
-                    // Update table reference to include all data rows
-                    const lastRow = dataRows.length + 1; // +1 for header
-                    try {
-                        revitTable.table.tableRef = `A1:E${lastRow}`;
-                    } catch (e) {
-                        console.log('Could not update table ref:', e);
-                    }
-                } else {
-                    // No table - fall back to cell-by-cell writing
-                    console.log('No RevitData table found, writing cells directly');
-                    dataRows.forEach((row, idx) => {
-                        const rowNum = idx + 2;
-                        wsData.getCell(`A${rowNum}`).value = row.FloorMap;
-                        wsData.getCell(`B${rowNum}`).value = row.Name;
-                        wsData.getCell(`C${rowNum}`).value = row.Area;
-                        wsData.getCell(`D${rowNum}`).value = row['NON BOMA Areas'];
-                        wsData.getCell(`E${rowNum}`).value = row['Area Scheme Name'];
-                    });
-                }
+                // Write data starting at row 2 (after header in row 1)
+                // If template has an Excel Table named "RevitData", Excel will auto-expand it
+                // when it detects data in contiguous rows below the header
+                dataRows.forEach((row, idx) => {
+                    const rowNum = idx + 2;
+                    wsData.getCell(`A${rowNum}`).value = row.FloorMap;
+                    wsData.getCell(`B${rowNum}`).value = row.Name;
+                    wsData.getCell(`C${rowNum}`).value = row.Area;
+                    wsData.getCell(`D${rowNum}`).value = row['NON BOMA Areas'];
+                    wsData.getCell(`E${rowNum}`).value = row['Area Scheme Name'];
+                });
             }
             
             // Handle NON-BOMA Areas tab
