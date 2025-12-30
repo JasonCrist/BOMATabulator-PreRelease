@@ -952,6 +952,11 @@
                 // Check if this type was mapped in Step 3
                 const mappedTo = areaTypeMappingSelections[type];
                 
+                // Skip types mapped to NONE - they are excluded from output entirely
+                if (mappedTo === 'NONE') {
+                    return;
+                }
+                
                 if (mappedTo && mappedTo !== 'NON-BOMA' && EXPECTED_AREA_TYPES.some(exp => exp.toUpperCase() === mappedTo.toUpperCase())) {
                     // Type was mapped to a BOMA standard type
                     standardTypes.push(type);
@@ -1371,6 +1376,7 @@
                             <option value="FSA" ${u.suggestion === 'FSA' ? 'selected' : ''}>FSA (Floor Service Area)</option>
                             <option value="BBC" ${u.suggestion === 'BBC' ? 'selected' : ''}>BBC (Base Building Circulation)</option>
                             <option value="NON-BOMA" ${u.suggestion === 'NON-BOMA' ? 'selected' : ''}>Non-BOMA Area</option>
+                            <option value="NONE">None (Exclude from output)</option>
                         </select>
                     </div>
                 `).join('');
