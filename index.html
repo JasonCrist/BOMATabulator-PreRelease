@@ -869,8 +869,21 @@
                         return;
                     }
                     
-                    rawData = jsonData;
-                    levelColumn = Object.keys(jsonData[0]).find(k => k.toLowerCase().includes('level'));
+                    // Filter out (Instance) rows and blank rows that come from Revit exports
+                    const nameCol = Object.keys(jsonData[0]).find(k => k.toLowerCase() === 'name');
+                    const filteredData = jsonData.filter(row => {
+                        // Check Name column for (Instance) or blank
+                        if (nameCol) {
+                            const name = row[nameCol];
+                            if (!name || (typeof name === 'string' && (name.trim() === '' || name.includes('(Instance)')))) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    });
+                    
+                    rawData = filteredData;
+                    levelColumn = Object.keys(filteredData[0] || jsonData[0]).find(k => k.toLowerCase().includes('level'));
                     
                     if (!levelColumn) {
                         alert('No "Level" column found');
@@ -880,10 +893,9 @@
                     // Extract levels (allow short names like "P3")
                     revitLevels = [];
                     const seen = {};
-                    jsonData.forEach(row => {
+                    filteredData.forEach(row => {
                         const level = row[levelColumn];
-                        if (level && typeof level === 'string' && level.trim().length > 0 &&
-                            !level.startsWith('(Instance)') && !seen[level]) {
+                        if (level && typeof level === 'string' && level.trim().length > 0 && !seen[level]) {
                             seen[level] = true;
                             revitLevels.push(level);
                         }
@@ -895,10 +907,9 @@
                     }
                     
                     // Extract area types
-                    const nameCol = Object.keys(jsonData[0]).find(k => k.toLowerCase() === 'name');
                     if (nameCol) {
                         const typeSet = new Set();
-                        jsonData.forEach(row => {
+                        filteredData.forEach(row => {
                             const name = row[nameCol];
                             if (name && typeof name === 'string' && name.trim().length > 0) {
                                 typeSet.add(name.trim());
@@ -909,10 +920,10 @@
                     }
                     
                     document.getElementById('fileName').textContent = file.name;
-                    document.getElementById('fileDetails').textContent = `${revitLevels.length} levels • ${jsonData.length} rows • ${areaTypes.length} area types`;
+                    document.getElementById('fileDetails').textContent = `${revitLevels.length} levels • ${filteredData.length} rows • ${areaTypes.length} area types`;
                     document.getElementById('fileInfo').classList.add('active');
                     document.getElementById('totalLevels').textContent = revitLevels.length;
-                    document.getElementById('totalRows').textContent = jsonData.length;
+                    document.getElementById('totalRows').textContent = filteredData.length;
                     
                     initializeFloorMappings();
                     renderAreaTypes();
