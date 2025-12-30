@@ -690,7 +690,7 @@
             margin: 10px 0;
         }
         .instruction-step-num {
-            background: var(--accent);
+            background: #b71c1c;
             color: white;
             width: 22px;
             height: 22px;
@@ -765,6 +765,38 @@
                                 <li><strong>Load Factor</strong> = Your share of building common areas (amenities, corridors, etc.)</li>
                             </ul>
                             
+                            <h4>Method A vs Method B</h4>
+                            <ul>
+                                <li><strong>Method B (Recommended):</strong> Simpler calculation, suitable for most projects</li>
+                                <li><strong>Method A (Legacy):</strong> More complex, granular allocation used in older versions of BOMA</li>
+                            </ul>
+                            
+                            <h4>Tips for Special Cases</h4>
+                            <ul>
+                                <li><strong>Retail spaces:</strong> Ask the developer how to handle—retailers typically don't want add-on factors. Consider pulling retail out as a separate number.</li>
+                                <li><strong>Balconies:</strong> Rentable area but without load factor applied. (This is as of BOMA 2024)</li>
+                                <li><strong>Parking (& Storage), & MVP:</strong> Excluded from load calculations</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Collapsible: Setting up Revit Area Plans -->
+                <div class="collapsible-section" id="revitAreaPlansSection">
+                    <div class="collapsible-header" onclick="toggleCollapsible('revitAreaPlansSection')">
+                        <span>📐 Setting up Revit Area Plans</span>
+                        <span class="collapsible-icon">▼</span>
+                    </div>
+                    <div class="collapsible-content">
+                        <div class="collapsible-inner">
+                            <h4>Measurement Guidelines within Revit</h4>
+                            <ul>
+                                <li>Measure to <strong>inside face of glass</strong> at exterior walls</li>
+                                <li>For solid walls: measure to inside face of the <strong>dominant portion</strong> (from 8' down)</li>
+                                <li>Group area boundary lines in Revit to avoid accidentally moving walls</li>
+                                <li>Label charts as <strong>"Preliminary"</strong> and <strong>"Modified"</strong> as appropriate</li>
+                            </ul>
+                            
                             <h4>Area Type Categories ("Buckets")</h4>
                             <div class="note-box">
                                 <strong>ⓘ Note:</strong> These abbreviations differ slightly from the official BOMA standard to help users and clients better understand the categories.
@@ -789,26 +821,9 @@
                                 </tbody>
                             </table>
                             
-                            <h4>Method A vs Method B</h4>
-                            <ul>
-                                <li><strong>Method B (Recommended):</strong> Simpler calculation, suitable for most projects</li>
-                                <li><strong>Method A (Legacy):</strong> More complex, granular allocation used in older versions of BOMA</li>
-                            </ul>
-                            
-                            <h4>Measurement Guidelines within Revit</h4>
-                            <ul>
-                                <li>Measure to <strong>inside face of glass</strong> at exterior walls</li>
-                                <li>For solid walls: measure to inside face of the <strong>dominant portion</strong> (from 8' down)</li>
-                                <li>Group area boundary lines in Revit to avoid accidentally moving walls</li>
-                                <li>Label charts as <strong>"Preliminary"</strong> and <strong>"Modified"</strong> as appropriate</li>
-                            </ul>
-                            
-                            <h4>Tips for Special Cases</h4>
-                            <ul>
-                                <li><strong>Retail spaces:</strong> Ask the developer how to handle—retailers typically don't want add-on factors. Consider pulling retail out as a separate number.</li>
-                                <li><strong>Balconies:</strong> Rentable area but without load factor applied. (This is as of BOMA 2024)</li>
-                                <li><strong>Parking (& Storage), & MVP:</strong> Excluded from load calculations</li>
-                            </ul>
+                            <h4>Wall Priority Diagrams</h4>
+                            <p>When drawing area boundaries in Revit, use the wall priority order shown below. Each diagram shows which area type "wins" when boundaries meet at a wall.</p>
+                            <img src="https://raw.githubusercontent.com/JasonCrist/BOMATabulator-PreRelease/main/boma-wall-priority-diagrams.gif" alt="BOMA Wall Priority Diagrams" class="instruction-image" style="max-width: 100%; border: 1px solid #ddd; border-radius: 6px;">
                         </div>
                     </div>
                 </div>
@@ -824,16 +839,12 @@
                             <h4>Prerequisites</h4>
                             <p>Before exporting, ensure you have:</p>
                             <ul>
-                                <li>Area boundaries drawn per BOMA standards (see Step 1 below)</li>
+                                <li>Area boundaries drawn per BOMA standards (see "Setting up Revit Area Plans" above)</li>
                                 <li>Each area assigned an abbreviation per HKS methods (TA, MVP, BSA, etc.)</li>
                                 <li>A BOMA Area Scheme set up in Revit</li>
                             </ul>
                             
-                            <h4>Step 1: Draw Area Boundaries</h4>
-                            <p>When drawing area boundaries in Revit, use the wall priority order shown below. Each diagram shows which area type "wins" when boundaries meet at a wall.</p>
-                            <img src="https://raw.githubusercontent.com/JasonCrist/BOMATabulator-PreRelease/main/boma-wall-priority-diagrams.gif" alt="BOMA Wall Priority Diagrams" class="instruction-image" style="max-width: 100%; border: 1px solid #ddd; border-radius: 6px;">
-                            
-                            <h4>Step 2: Verify Your Area Scheme
+                            <h4>Step 1: Verify Your Area Scheme
                                 <span class="tooltip-container">
                                     <span class="tooltip-icon">i</span>
                                     <span class="tooltip-text">Name your scheme descriptively, e.g., "BOMA 2024 - Office"</span>
@@ -853,7 +864,7 @@
                             </div>
                             <img src="https://raw.githubusercontent.com/JasonCrist/BOMATabulator-PreRelease/main/revit-step1-area-scheme.png" alt="Area and Volume Computations dialog" class="instruction-image">
                             
-                            <h4>Step 3: Open Spreadsheet Link
+                            <h4>Step 2: Open Spreadsheet Link
                                 <span class="tooltip-container">
                                     <span class="tooltip-icon">i</span>
                                     <span class="tooltip-text">This is a CTC BIM Project Suite tool. If you don't see it, contact your BIM manager.</span>
@@ -869,7 +880,7 @@
                             </div>
                             <img src="https://raw.githubusercontent.com/JasonCrist/BOMATabulator-PreRelease/main/revit-step2-express-tools.png" alt="Express Tools ribbon with Spreadsheet Link" class="instruction-image">
                             
-                            <h4>Step 4: Configure Export Settings
+                            <h4>Step 3: Configure Export Settings
                                 <span class="tooltip-container">
                                     <span class="tooltip-icon">i</span>
                                     <span class="tooltip-text">Next time you export, use "Load Settings → From Project" to skip this setup.</span>
@@ -893,7 +904,7 @@
                             </div>
                             <img src="https://raw.githubusercontent.com/JasonCrist/BOMATabulator-PreRelease/main/revit-step3-settings.png" alt="Spreadsheet Link Settings dialog" class="instruction-image">
                             
-                            <h4>Step 5: Export and Save
+                            <h4>Step 4: Export and Save
                                 <span class="tooltip-container">
                                     <span class="tooltip-icon">i</span>
                                     <span class="tooltip-text">Re-saving in Excel prevents compatibility errors when importing to the BOMA Tabulator.</span>
