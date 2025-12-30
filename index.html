@@ -1281,11 +1281,11 @@
         // Keyword mapping for smart suggestions
         const KEYWORD_MAPPINGS = {
             'TA': ['TENANT', 'OFFICE', 'LEASE'],
-            'TA-BALC': ['BALCONY', 'BALC'],
+            'TA-BALC': ['TENANT BALC', 'TA BALC', 'TA-BALC', 'TA- BALC'],
             'PA': ['PARKING', 'PARK', 'GARAGE', 'STORAGE', 'STOR'],
             'MVP': ['SHAFT', 'STAIR', 'ELEVATOR', 'ELEV', 'VERTICAL', 'PENETRATION'],
             'BSA': ['LOBBY', 'FITNESS', 'LOUNGE', 'BUILDING SERVICE', 'AMENITY'],
-            'BSA-DECK': ['DECK'],
+            'BSA-DECK': ['BSA DECK', 'BSA-DECK', 'BSA- DECK', 'BUILDING DECK'],
             'FSA': ['RESTROOM', 'TOILET', 'TELECOM', 'DATA', 'FLOOR SERVICE', 'MECHANICAL'],
             'BBC': ['CORRIDOR', 'CIRCULATION', 'COMMON']
         };
@@ -1294,10 +1294,26 @@
         function findKeywordMatch(typeName) {
             const upperName = typeName.toUpperCase();
             
-            // Check each BOMA type's keywords
+            // First pass: check for specific compound keywords (more specific matches first)
+            // This prevents "REST. BALC." from matching "TA-BALC"
             for (const [bomaType, keywords] of Object.entries(KEYWORD_MAPPINGS)) {
                 for (const keyword of keywords) {
-                    if (upperName.includes(keyword)) {
+                    // For compound keywords (contain space or dash), require exact phrase
+                    if ((keyword.includes(' ') || keyword.includes('-')) && upperName.includes(keyword.replace(/[\s-]+/g, ''))) {
+                        // Normalize both for comparison (remove spaces/dashes)
+                        const normalizedName = upperName.replace(/[\s.-]+/g, '');
+                        const normalizedKeyword = keyword.replace(/[\s-]+/g, '');
+                        if (normalizedName.includes(normalizedKeyword)) {
+                            return bomaType;
+                        }
+                    }
+                }
+            }
+            
+            // Second pass: check single-word keywords
+            for (const [bomaType, keywords] of Object.entries(KEYWORD_MAPPINGS)) {
+                for (const keyword of keywords) {
+                    if (!keyword.includes(' ') && !keyword.includes('-') && upperName.includes(keyword)) {
                         return bomaType;
                     }
                 }
@@ -1512,6 +1528,7 @@
                         mappedData.push({
                             FloorMap: buildingFloor,
                             Name: mappedAreaType,
+                            OriginalName: areaType, // Keep original for NON-BOMA filtering
                             'Area Scheme Name': row['Area Scheme Name'] || 'BOMA 2024',
                             Area: parseFloat(row.Area) || 0
                         });
@@ -1681,9 +1698,10 @@
                     // Filter floors to only those with data for selected non-standard types
                     const floorsWithNonBomaData = floors.filter(floor => {
                         // Check if this floor has any data for selected non-standard types
+                        // Use OriginalName since selectedNonStandard contains original type names
                         return mappedData.some(row => 
                             row.FloorMap === floor && 
-                            selectedNonStandard.includes(row.Name) &&
+                            selectedNonStandard.includes(row.OriginalName) &&
                             row.Area > 0
                         );
                     });
