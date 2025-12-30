@@ -728,14 +728,6 @@
         <div class="header">
             <h1><img src="https://raw.githubusercontent.com/JasonCrist/BOMATabulator-PreRelease/main/HKS-Logo-White_N2.png" alt="HKS" style="height: 0.82em; vertical-align: -0.05em; margin-right: 10px;">BOMA Tabulator</h1>
             <p id="headerSubtitle">This tool converts Revit area exports to a HKS Formatted BOMA spreadsheet.</p>
-            <p id="headerSteps" style="margin-top: 12px; font-size: 13px; opacity: 0.85; line-height: 1.8;">
-                <strong>Step 1:</strong> Upload your Revit export file<br>
-                <strong>Step 2:</strong> Enter project information<br>
-                <strong>Step 3:</strong> Map area types to BOMA categories<br>
-                <strong>Step 4:</strong> Review and select area types<br>
-                <strong>Step 5:</strong> Map and reorder building floors<br>
-                <strong>Step 6:</strong> Generate your BOMA spreadsheet
-            </p>
         </div>
         
         <div class="content">
@@ -935,6 +927,18 @@
                                 <li>A blank row—also filtered out automatically</li>
                             </ul>
                         </div>
+                    </div>
+                </div>
+                
+                <!-- Workflow Steps Summary -->
+                <div id="workflowSteps" style="background: #f5f5f5; border: 1px solid var(--border); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                    <div style="font-size: 14px; line-height: 1.8;">
+                        <strong>Step 1:</strong> Upload your Revit export file<br>
+                        <strong>Step 2:</strong> Enter project information<br>
+                        <strong>Step 3:</strong> Map area types to BOMA categories<br>
+                        <strong>Step 4:</strong> Review and select area types<br>
+                        <strong>Step 5:</strong> Map and reorder building floors<br>
+                        <strong>Step 6:</strong> Generate your BOMA spreadsheet
                     </div>
                 </div>
                 
@@ -1675,11 +1679,17 @@
             const stepId = n === 2 ? 'step2' : n === 3 ? 'step3' : n === 4 ? 'step4' : n === 5 ? 'step5' : 'step6';
             document.getElementById(stepId).classList.remove('hidden');
             
-            // Hide header subtitle and steps after step 1
+            // Hide header subtitle, workflow steps, and collapsible sections after step 1
             const subtitle = document.getElementById('headerSubtitle');
-            const steps = document.getElementById('headerSteps');
+            const steps = document.getElementById('workflowSteps');
+            const bomaBasics = document.getElementById('bomaBasicsSection');
+            const revitAreaPlans = document.getElementById('revitAreaPlansSection');
+            const revitExport = document.getElementById('revitExportSection');
             if (subtitle) subtitle.style.display = 'none';
             if (steps) steps.style.display = 'none';
+            if (bomaBasics) bomaBasics.style.display = 'none';
+            if (revitAreaPlans) revitAreaPlans.style.display = 'none';
+            if (revitExport) revitExport.style.display = 'none';
         }
         
         // Keyword mapping for smart suggestions
