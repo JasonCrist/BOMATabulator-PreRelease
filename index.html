@@ -789,6 +789,10 @@
                                 </tbody>
                             </table>
                             
+                            <h4>Wall Priority Diagrams</h4>
+                            <p>When drawing area boundaries in Revit, use the wall priority order shown below. Each diagram shows which area type "wins" when boundaries meet at a wall.</p>
+                            <img src="https://raw.githubusercontent.com/JasonCrist/BOMATabulator-PreRelease/main/boma-wall-priority-diagrams.gif" alt="BOMA Wall Priority Diagrams" class="instruction-image" style="max-width: 100%; border: 1px solid #ddd; border-radius: 6px;">
+                            
                             <h4>Method A vs Method B</h4>
                             <ul>
                                 <li><strong>Method B (Recommended):</strong> Simpler calculation, suitable for most projects</li>
@@ -829,7 +833,12 @@
                                 <li>A BOMA Area Scheme set up in Revit</li>
                             </ul>
                             
-                            <h4>Step 1: Verify Your Area Scheme</h4>
+                            <h4>Step 1: Verify Your Area Scheme
+                                <span class="tooltip-container">
+                                    <span class="tooltip-icon">i</span>
+                                    <span class="tooltip-text">Name your scheme descriptively, e.g., "BOMA 2024 - Office"</span>
+                                </span>
+                            </h4>
                             <div class="instruction-step">
                                 <span class="instruction-step-num">1</span>
                                 <span>Go to <strong>Room & Area</strong> dropdown</span>
@@ -842,13 +851,14 @@
                                 <span class="instruction-step-num">3</span>
                                 <span>Confirm your BOMA area scheme exists (or click <strong>New</strong> to create one)</span>
                             </div>
-                            <div class="tooltip-container">
-                                <span class="tooltip-icon">i</span>
-                                <span class="tooltip-text">Name your scheme descriptively, e.g., "BOMA 2024 - Office"</span>
-                            </div>
                             <img src="https://raw.githubusercontent.com/JasonCrist/BOMATabulator-PreRelease/main/revit-step1-area-scheme.png" alt="Area and Volume Computations dialog" class="instruction-image">
                             
-                            <h4>Step 2: Open Spreadsheet Link</h4>
+                            <h4>Step 2: Open Spreadsheet Link
+                                <span class="tooltip-container">
+                                    <span class="tooltip-icon">i</span>
+                                    <span class="tooltip-text">This is a CTC BIM Project Suite tool. If you don't see it, contact your BIM manager.</span>
+                                </span>
+                            </h4>
                             <div class="instruction-step">
                                 <span class="instruction-step-num">1</span>
                                 <span>Click the <strong>Express Tools</strong> tab</span>
@@ -857,13 +867,14 @@
                                 <span class="instruction-step-num">2</span>
                                 <span>Click <strong>Spreadsheet Link</strong> (green "SL" icon)</span>
                             </div>
-                            <div class="tooltip-container">
-                                <span class="tooltip-icon">i</span>
-                                <span class="tooltip-text">This is a CTC BIM Project Suite tool. If you don't see it, contact your BIM manager.</span>
-                            </div>
                             <img src="https://raw.githubusercontent.com/JasonCrist/BOMATabulator-PreRelease/main/revit-step2-express-tools.png" alt="Express Tools ribbon with Spreadsheet Link" class="instruction-image">
                             
-                            <h4>Step 3: Configure Export Settings</h4>
+                            <h4>Step 3: Configure Export Settings
+                                <span class="tooltip-container">
+                                    <span class="tooltip-icon">i</span>
+                                    <span class="tooltip-text">Next time you export, use "Load Settings → From Project" to skip this setup.</span>
+                                </span>
+                            </h4>
                             <div class="instruction-step">
                                 <span class="instruction-step-num">1</span>
                                 <span>In the Settings dialog, select <strong>Areas</strong> from Available Categories</span>
@@ -880,13 +891,14 @@
                                 <span class="instruction-step-num">4</span>
                                 <span>Click <strong>Save Settings → To Project</strong> (for easy re-export later)</span>
                             </div>
-                            <div class="tooltip-container">
-                                <span class="tooltip-icon">i</span>
-                                <span class="tooltip-text">Next time you export, use "Load Settings → From Project" to skip this setup.</span>
-                            </div>
                             <img src="https://raw.githubusercontent.com/JasonCrist/BOMATabulator-PreRelease/main/revit-step3-settings.png" alt="Spreadsheet Link Settings dialog" class="instruction-image">
                             
-                            <h4>Step 4: Export and Save</h4>
+                            <h4>Step 4: Export and Save
+                                <span class="tooltip-container">
+                                    <span class="tooltip-icon">i</span>
+                                    <span class="tooltip-text">Re-saving in Excel prevents compatibility errors when importing to the BOMA Tabulator.</span>
+                                </span>
+                            </h4>
                             <div class="instruction-step">
                                 <span class="instruction-step-num">1</span>
                                 <span>Click <strong>Save</strong> in the Spreadsheet Link window</span>
@@ -902,10 +914,6 @@
                             <div class="instruction-step">
                                 <span class="instruction-step-num">4</span>
                                 <span><strong>Important:</strong> Save the file again as .xlsx in Excel before closing</span>
-                            </div>
-                            <div class="tooltip-container">
-                                <span class="tooltip-icon">i</span>
-                                <span class="tooltip-text">Re-saving in Excel prevents compatibility errors when importing to the BOMA Tabulator.</span>
                             </div>
                             <img src="https://raw.githubusercontent.com/JasonCrist/BOMATabulator-PreRelease/main/revit-step4-export.png" alt="Spreadsheet Link export preview" class="instruction-image">
                             
