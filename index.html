@@ -524,9 +524,10 @@
             <p id="headerSteps" style="margin-top: 12px; font-size: 13px; opacity: 0.85; line-height: 1.8;">
                 <strong>Step 1:</strong> Upload your Revit export file<br>
                 <strong>Step 2:</strong> Enter project information<br>
-                <strong>Step 3:</strong> Review and select area types<br>
-                <strong>Step 4:</strong> Map and reorder building floors<br>
-                <strong>Step 5:</strong> Generate your BOMA spreadsheet
+                <strong>Step 3:</strong> Map area types to BOMA categories<br>
+                <strong>Step 4:</strong> Review and select area types<br>
+                <strong>Step 5:</strong> Map and reorder building floors<br>
+                <strong>Step 6:</strong> Generate your BOMA spreadsheet
             </p>
         </div>
         
@@ -537,6 +538,22 @@
                     <div class="step-number">1</div>
                     <div class="step-title">Upload Revit Export</div>
                 </div>
+                
+                <div class="abbreviation-guide" style="background: #f5f5f5; border: 1px solid var(--border); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                    <div style="font-weight: 600; margin-bottom: 10px; color: var(--hks-grey);">📋 Recommended Revit Area Type Names</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 6px; font-size: 13px;">
+                        <div><strong>TA</strong> – Tenant Area</div>
+                        <div><strong>TA-BALC</strong> – Exterior Tenant Balcony</div>
+                        <div><strong>PA</strong> – Parking Area (includes Storage)</div>
+                        <div><strong>MVP</strong> – Major Vertical Penetration (stairs, elevators, shafts)</div>
+                        <div><strong>BSA</strong> – Building Service Area (lobbies, fitness, lounges)</div>
+                        <div><strong>BSA-DECK</strong> – Exterior Building Service Deck</div>
+                        <div><strong>FSA</strong> – Floor Service Area (restrooms, telecom, mech rooms)</div>
+                        <div><strong>BBC</strong> – Base Building Circulation (common corridors)</div>
+                    </div>
+                    <div style="margin-top: 10px; font-size: 12px; color: #666;">Using these abbreviations in Revit will streamline the import process.</div>
+                </div>
+                
                 <div class="upload-zone" id="uploadZone">
                     <div class="upload-icon">📁</div>
                     <div class="upload-text">Click to browse or drag and drop</div>
@@ -585,14 +602,56 @@
                 </div>
             </div>
             
-            <!-- Step 3: Area Type Review -->
+            <!-- Step 3: Map Area Types -->
             <div class="step hidden" id="step3">
                 <div class="step-header">
                     <div class="step-number">3</div>
-                    <div class="step-title">Review Area Types</div>
+                    <div class="step-title">Map Area Types</div>
                 </div>
                 <div class="info-box">
-                    <p><strong>Review:</strong> Area types have been categorized based on BOMA standards. Standard types are pre-selected. Adjust as needed.</p>
+                    <p><strong>Map:</strong> Match your Revit area type names to BOMA categories. Types already matching are shown as confirmed.</p>
+                </div>
+                
+                <!-- Already Matched Types -->
+                <div class="area-category" id="matchedTypesSection" style="display: none;">
+                    <div class="area-category-header standard">
+                        <span>✓ Already Matched</span>
+                    </div>
+                    <div id="matchedTypesList" style="padding: 10px 15px; background: white;"></div>
+                </div>
+                
+                <!-- Types Needing Mapping -->
+                <div class="area-category" id="unmatchedTypesSection" style="display: none;">
+                    <div class="area-category-header nonstandard">
+                        <span>⚠ Needs Mapping</span>
+                    </div>
+                    <div id="unmatchedTypesList" style="padding: 10px 15px; background: white;"></div>
+                </div>
+                
+                <div id="allMatchedMessage" style="display: none; text-align: center; padding: 40px; background: #e8f5e9; border-radius: 8px; margin: 20px 0;">
+                    <div style="font-size: 48px; margin-bottom: 10px;">✓</div>
+                    <div style="font-size: 18px; font-weight: 600; color: #2e7d32;">All area types match BOMA standards!</div>
+                    <div style="font-size: 14px; color: #666; margin-top: 5px;">No mapping needed. Click Continue to proceed.</div>
+                </div>
+                
+                <div style="margin-top: 15px; text-align: right;">
+                    <button class="btn" style="background: var(--hks-grey); color: white; margin-right: 10px;" onclick="showStep(2)">
+                        ← Back
+                    </button>
+                    <button class="btn btn-primary" onclick="applyAreaTypeMappingsAndContinue()">
+                        Continue →
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Step 4: Area Type Review -->
+            <div class="step hidden" id="step4">
+                <div class="step-header">
+                    <div class="step-number">4</div>
+                    <div class="step-title">Select Area Types</div>
+                </div>
+                <div class="info-box">
+                    <p><strong>Select:</strong> Choose which area types to include in the calculations. BOMA types are pre-selected.</p>
                 </div>
                 
                 <!-- BOMA Standard Types -->
@@ -621,19 +680,19 @@
                 </div>
                 
                 <div style="margin-top: 15px; text-align: right;">
-                    <button class="btn" style="background: var(--hks-grey); color: white; margin-right: 10px;" onclick="showStep(2)">
+                    <button class="btn" style="background: var(--hks-grey); color: white; margin-right: 10px;" onclick="showStep(3)">
                         ← Back
                     </button>
-                    <button class="btn btn-primary" onclick="proceedToStep4()">
+                    <button class="btn btn-primary" onclick="proceedToStep5()">
                         Continue →
                     </button>
                 </div>
             </div>
             
-            <!-- Step 4: Map Floors -->
-            <div class="step hidden" id="step4">
+            <!-- Step 5: Map Floors -->
+            <div class="step hidden" id="step5">
                 <div class="step-header">
-                    <div class="step-number">4</div>
+                    <div class="step-number">5</div>
                     <div class="step-title">Map Building Floors</div>
                 </div>
                 <div class="info-box">
@@ -663,7 +722,7 @@
                 </div>
                 <div class="mapping-container" id="mappingContainer"></div>
                 <div style="margin-top: 8px; text-align: right;">
-                    <button class="btn" style="background: var(--hks-grey); color: white; margin-right: 10px;" onclick="showStep(3)">
+                    <button class="btn" style="background: var(--hks-grey); color: white; margin-right: 10px;" onclick="showStep(4)">
                         ← Back
                     </button>
                     <button class="btn btn-primary" onclick="proceedToGenerate()">
@@ -672,10 +731,10 @@
                 </div>
             </div>
             
-            <!-- Step 5: Generate -->
-            <div class="step hidden" id="step5">
+            <!-- Step 6: Generate -->
+            <div class="step hidden" id="step6">
                 <div class="step-header">
-                    <div class="step-number">5</div>
+                    <div class="step-number">6</div>
                     <div class="step-title">Generate BOMA Spreadsheet</div>
                 </div>
                 <div class="info-box" style="background: #fff3e0; border-left-color: var(--warning);">
@@ -685,41 +744,10 @@
                     <span>📊</span> Generate Excel with Formulas
                 </button>
                 <div style="margin-top: 20px;">
-                    <button class="btn" style="background: var(--hks-grey); color: white;" onclick="showStep(4)">
+                    <button class="btn" style="background: var(--hks-grey); color: white;" onclick="showStep(5)">
                         ← Back
                     </button>
                 </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Area Type Validation Modal -->
-    <div class="modal-overlay" id="validationModal">
-        <div class="modal">
-            <div class="modal-header">
-                <span style="font-size: 28px;">⚠️</span>
-                <h2>Area Type Mismatch Detected</h2>
-            </div>
-            <div class="modal-body">
-                <div class="revit-note">
-                    <strong>💡 Tip:</strong> Consider fixing these area type names in your Revit model before the next export to avoid this step in the future.
-                </div>
-                <p style="margin-bottom: 15px;">The following selected area types don't match expected BOMA categories and may cause formula errors:</p>
-                <table class="mismatch-table" id="mismatchTable">
-                    <thead>
-                        <tr>
-                            <th>Your Data</th>
-                            <th></th>
-                            <th>Map To</th>
-                        </tr>
-                    </thead>
-                    <tbody id="mismatchTableBody">
-                    </tbody>
-                </table>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeValidationModal()">← Adjust Selection</button>
-                <button class="btn btn-warning" onclick="applyMappingsAndProceed()">Apply Mappings & Continue →</button>
             </div>
         </div>
     </div>
@@ -736,6 +764,7 @@
         let areaTypes = [];
         let selectedAreaTypes = [];
         let areaTypeMappings = {}; // Maps user's area types to BOMA categories
+        let areaTypeMappingSelections = {}; // Selections from Step 3 mapping UI
         
         // Expected BOMA area types
         const EXPECTED_AREA_TYPES = ['TA', 'TA-BALC', 'MVP', 'PA', 'BSA', 'BSA-DECK', 'FSA', 'BBC'];
@@ -800,113 +829,6 @@
             }
             
             return { match: bestMatch, score: bestScore };
-        }
-        
-        // Validate area types and return mismatches (only checks selected types)
-        function validateAreaTypes() {
-            const mismatches = [];
-            
-            // Only validate types that are in the BOMA Standard section
-            // Non-standard types are intentionally non-BOMA and don't need validation
-            const selectedStandardTypes = selectedAreaTypes.filter(t => standardTypes.includes(t));
-            
-            for (const userType of selectedStandardTypes) {
-                // Check for LITERAL exact match (case-insensitive only)
-                const upperType = userType.toUpperCase();
-                const isExactMatch = EXPECTED_AREA_TYPES.some(exp => exp.toUpperCase() === upperType);
-                
-                if (!isExactMatch) {
-                    const { match, score } = findBestMatch(userType);
-                    mismatches.push({
-                        original: userType,
-                        suggested: match,
-                        score: score
-                    });
-                }
-            }
-            
-            return mismatches;
-        }
-        
-        // Show validation modal with mismatches
-        function showValidationModal(mismatches) {
-            const tbody = document.getElementById('mismatchTableBody');
-            tbody.innerHTML = '';
-            
-            // Initialize mappings
-            areaTypeMappings = {};
-            
-            mismatches.forEach((mismatch, idx) => {
-                const row = document.createElement('tr');
-                
-                // Build dropdown options
-                let options = EXPECTED_AREA_TYPES.map(type => 
-                    `<option value="${type}" ${type === mismatch.suggested ? 'selected' : ''}>${type}</option>`
-                ).join('');
-                options += '<option value="__custom__">Add a custom Category</option>';
-                
-                row.innerHTML = `
-                    <td><span class="mismatch-original">${mismatch.original}</span></td>
-                    <td class="mismatch-arrow">→</td>
-                    <td>
-                        <select class="mapping-select" id="mapping_${idx}" onchange="handleMappingChange(${idx}, '${mismatch.original}', this.value)">
-                            ${options}
-                        </select>
-                        <input type="text" class="custom-input" id="custom_${idx}" style="display:none;" 
-                               placeholder="Custom name" onchange="handleCustomInput(${idx}, '${mismatch.original}', this.value)">
-                        <span class="match-percent">${mismatch.score}% match</span>
-                    </td>
-                `;
-                tbody.appendChild(row);
-                
-                // Initialize mapping with suggested value
-                areaTypeMappings[mismatch.original] = mismatch.suggested;
-            });
-            
-            document.getElementById('validationModal').classList.add('active');
-        }
-        
-        // Handle dropdown change
-        function handleMappingChange(idx, original, value) {
-            const customInput = document.getElementById(`custom_${idx}`);
-            
-            if (value === '__custom__') {
-                customInput.style.display = 'inline-block';
-                customInput.focus();
-                // Don't update mapping until they type something
-            } else {
-                customInput.style.display = 'none';
-                areaTypeMappings[original] = value;
-            }
-        }
-        
-        // Handle custom input
-        function handleCustomInput(idx, original, value) {
-            if (value.trim()) {
-                areaTypeMappings[original] = value.trim();
-            }
-        }
-        
-        // Close modal and go back to step 3
-        function closeValidationModal() {
-            document.getElementById('validationModal').classList.remove('active');
-            // Stay on step 3 so user can adjust selections
-        }
-        
-        // Apply mappings and continue to step 4
-        function applyMappingsAndProceed() {
-            // Verify all custom inputs have values
-            for (const original in areaTypeMappings) {
-                if (!areaTypeMappings[original]) {
-                    alert('Please provide a mapping for all area types');
-                    return;
-                }
-            }
-            
-            document.getElementById('validationModal').classList.remove('active');
-            
-            // Continue to step 4 (Map Building Floors)
-            showStep(4);
         }
         
         // DOM elements
@@ -1027,9 +949,20 @@
             nonStandardTypes = [];
             
             areaTypes.forEach(type => {
-                if (isBomaStandard(type)) {
+                // Check if this type was mapped in Step 3
+                const mappedTo = areaTypeMappingSelections[type];
+                
+                if (mappedTo && mappedTo !== 'NON-BOMA' && EXPECTED_AREA_TYPES.some(exp => exp.toUpperCase() === mappedTo.toUpperCase())) {
+                    // Type was mapped to a BOMA standard type
+                    standardTypes.push(type);
+                } else if (mappedTo === 'NON-BOMA') {
+                    // Type was explicitly mapped to NON-BOMA
+                    nonStandardTypes.push(type);
+                } else if (isBomaStandard(type)) {
+                    // Type matches BOMA standard directly
                     standardTypes.push(type);
                 } else {
+                    // Default to non-standard
                     nonStandardTypes.push(type);
                 }
             });
@@ -1056,10 +989,13 @@
                     div.className = 'area-type-item';
                     const isChecked = selectedAreaTypes.includes(type);
                     const safeId = type.replace(/[^a-zA-Z0-9]/g, '_');
+                    const mappedTo = areaTypeMappingSelections[type];
+                    const isMapped = mappedTo && mappedTo !== type && mappedTo !== 'NON-BOMA';
+                    const displayLabel = isMapped ? `${type} <span style="color: #2e7d32; font-size: 11px;">→ ${mappedTo}</span>` : type;
                     div.innerHTML = `
                         <input type="checkbox" id="at_${safeId}" ${isChecked ? 'checked' : ''} 
                                onchange="toggleAreaType('${type.replace(/'/g, "\\'")}', this.checked)">
-                        <label for="at_${safeId}">${type}</label>
+                        <label for="at_${safeId}">${displayLabel}</label>
                     `;
                     standardGrid.appendChild(div);
                 });
@@ -1327,7 +1263,7 @@
         
         function showStep(n) {
             document.querySelectorAll('.step').forEach(el => el.classList.add('hidden'));
-            const stepId = n === 2 ? 'step2' : n === 3 ? 'step3' : n === 4 ? 'step4' : 'step5';
+            const stepId = n === 2 ? 'step2' : n === 3 ? 'step3' : n === 4 ? 'step4' : n === 5 ? 'step5' : 'step6';
             document.getElementById(stepId).classList.remove('hidden');
             
             // Hide header subtitle and steps after step 1
@@ -1337,26 +1273,139 @@
             if (steps) steps.style.display = 'none';
         }
         
+        // Keyword mapping for smart suggestions
+        const KEYWORD_MAPPINGS = {
+            'TA': ['TENANT', 'OFFICE', 'LEASE'],
+            'TA-BALC': ['BALCONY', 'BALC'],
+            'PA': ['PARKING', 'PARK', 'GARAGE', 'STORAGE', 'STOR'],
+            'MVP': ['SHAFT', 'STAIR', 'ELEVATOR', 'ELEV', 'VERTICAL', 'PENETRATION'],
+            'BSA': ['LOBBY', 'FITNESS', 'LOUNGE', 'BUILDING SERVICE', 'AMENITY'],
+            'BSA-DECK': ['DECK'],
+            'FSA': ['RESTROOM', 'TOILET', 'TELECOM', 'DATA', 'FLOOR SERVICE', 'MECHANICAL'],
+            'BBC': ['CORRIDOR', 'CIRCULATION', 'COMMON']
+        };
+        
+        // Find best BOMA match using keywords
+        function findKeywordMatch(typeName) {
+            const upperName = typeName.toUpperCase();
+            
+            // Check each BOMA type's keywords
+            for (const [bomaType, keywords] of Object.entries(KEYWORD_MAPPINGS)) {
+                for (const keyword of keywords) {
+                    if (upperName.includes(keyword)) {
+                        return bomaType;
+                    }
+                }
+            }
+            
+            // Fall back to fuzzy match using Levenshtein
+            const { match, score } = findBestMatch(typeName);
+            if (score >= 50) {
+                return match;
+            }
+            
+            return 'NON-BOMA';
+        }
+        
         function proceedToStep3() {
+            renderAreaTypeMappingUI();
             showStep(3);
         }
         
-        function proceedToStep4() {
+        function renderAreaTypeMappingUI() {
+            const matchedList = document.getElementById('matchedTypesList');
+            const unmatchedList = document.getElementById('unmatchedTypesList');
+            const matchedSection = document.getElementById('matchedTypesSection');
+            const unmatchedSection = document.getElementById('unmatchedTypesSection');
+            const allMatchedMsg = document.getElementById('allMatchedMessage');
+            
+            const matched = [];
+            const unmatched = [];
+            
+            // Categorize area types
+            areaTypes.forEach(type => {
+                const upperType = type.toUpperCase();
+                const isExactMatch = EXPECTED_AREA_TYPES.some(exp => exp.toUpperCase() === upperType);
+                
+                if (isExactMatch) {
+                    matched.push({ original: type, mappedTo: type });
+                } else {
+                    const suggestion = findKeywordMatch(type);
+                    unmatched.push({ original: type, suggestion: suggestion });
+                }
+            });
+            
+            // Initialize mapping selections
+            areaTypeMappingSelections = {};
+            matched.forEach(m => { areaTypeMappingSelections[m.original] = m.mappedTo; });
+            unmatched.forEach(u => { areaTypeMappingSelections[u.original] = u.suggestion; });
+            
+            // Render matched types
+            if (matched.length > 0) {
+                matchedSection.style.display = 'block';
+                matchedList.innerHTML = matched.map(m => `
+                    <div style="display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee;">
+                        <span style="min-width: 200px; font-weight: 500;">${m.original}</span>
+                        <span style="color: #2e7d32;">✓ Matched</span>
+                    </div>
+                `).join('');
+            } else {
+                matchedSection.style.display = 'none';
+            }
+            
+            // Render unmatched types
+            if (unmatched.length > 0) {
+                unmatchedSection.style.display = 'block';
+                allMatchedMsg.style.display = 'none';
+                unmatchedList.innerHTML = unmatched.map(u => `
+                    <div style="display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; gap: 15px;">
+                        <span class="mismatch-original" style="min-width: 200px;">${u.original}</span>
+                        <span style="color: var(--hks-grey);">→</span>
+                        <select class="mapping-select" onchange="updateMappingSelection('${u.original.replace(/'/g, "\\'")}', this.value)">
+                            <option value="TA" ${u.suggestion === 'TA' ? 'selected' : ''}>TA (Tenant Area)</option>
+                            <option value="TA-BALC" ${u.suggestion === 'TA-BALC' ? 'selected' : ''}>TA-BALC (Tenant Balcony)</option>
+                            <option value="PA" ${u.suggestion === 'PA' ? 'selected' : ''}>PA (Parking Area)</option>
+                            <option value="MVP" ${u.suggestion === 'MVP' ? 'selected' : ''}>MVP (Major Vertical Penetration)</option>
+                            <option value="BSA" ${u.suggestion === 'BSA' ? 'selected' : ''}>BSA (Building Service Area)</option>
+                            <option value="BSA-DECK" ${u.suggestion === 'BSA-DECK' ? 'selected' : ''}>BSA-DECK (Building Service Deck)</option>
+                            <option value="FSA" ${u.suggestion === 'FSA' ? 'selected' : ''}>FSA (Floor Service Area)</option>
+                            <option value="BBC" ${u.suggestion === 'BBC' ? 'selected' : ''}>BBC (Base Building Circulation)</option>
+                            <option value="NON-BOMA" ${u.suggestion === 'NON-BOMA' ? 'selected' : ''}>Non-BOMA Area</option>
+                        </select>
+                    </div>
+                `).join('');
+            } else {
+                unmatchedSection.style.display = 'none';
+                allMatchedMsg.style.display = 'block';
+            }
+        }
+        
+        function updateMappingSelection(original, value) {
+            areaTypeMappingSelections[original] = value;
+        }
+        
+        function applyAreaTypeMappingsAndContinue() {
+            // Apply the mappings to areaTypeMappings (used during Excel generation)
+            areaTypeMappings = {};
+            
+            for (const [original, mapped] of Object.entries(areaTypeMappingSelections)) {
+                if (mapped !== original && mapped !== 'NON-BOMA') {
+                    areaTypeMappings[original] = mapped;
+                }
+            }
+            
+            // Update areaTypes with mapped values for categorization
+            // This affects how renderAreaTypes categorizes them
+            showStep(4);
+            renderAreaTypes();
+        }
+        
+        function proceedToStep5() {
             if (selectedAreaTypes.length === 0) {
                 alert('Please select at least one area type');
                 return;
             }
-            
-            // Validate selected area types
-            const mismatches = validateAreaTypes();
-            if (mismatches.length > 0) {
-                // Show validation modal
-                showValidationModal(mismatches);
-            } else {
-                // No mismatches, proceed directly
-                areaTypeMappings = {};
-                showStep(4);
-            }
+            showStep(5);
         }
         
         function proceedToGenerate() {
@@ -1365,7 +1414,7 @@
                 alert(`Please name all ${empty.length} floor(s)`);
                 return;
             }
-            showStep(5);
+            showStep(6);
         }
         
         // Template URL - upload BOMA_Template.xlsx to GitHub for formatted output
