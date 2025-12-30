@@ -1674,20 +1674,72 @@
             }
             
             if (wsData) {
-                // Populate Revit Data (starting at row 2)
-                // Column C = Area (BOMA types only), Column D = NON BOMA Areas (non-BOMA types only)
-                mappedData.forEach((row, idx) => {
-                    const rowNum = idx + 2;
+                // Prepare data rows
+                const dataRows = mappedData.map(row => {
                     const areaType = row.Name;
-                    // Check against EXPECTED_AREA_TYPES since mapped names should match these
                     const isBomaType = EXPECTED_AREA_TYPES.some(exp => exp.toUpperCase() === areaType.toUpperCase());
-                    
-                    wsData.getCell(`A${rowNum}`).value = row.FloorMap;
-                    wsData.getCell(`B${rowNum}`).value = row.Name;
-                    wsData.getCell(`C${rowNum}`).value = isBomaType ? row.Area : 0;  // BOMA Area
-                    wsData.getCell(`D${rowNum}`).value = isBomaType ? 0 : row.Area;  // NON BOMA Areas
-                    wsData.getCell(`E${rowNum}`).value = row['Area Scheme Name'];
+                    return {
+                        FloorMap: row.FloorMap,
+                        Name: row.Name,
+                        Area: isBomaType ? row.Area : 0,
+                        'NON BOMA Areas': isBomaType ? 0 : row.Area,
+                        'Area Scheme Name': row['Area Scheme Name']
+                    };
                 });
+                
+                // Check if a table named "RevitData" exists
+                let hasTable = false;
+                let revitTable = null;
+                
+                try {
+                    // ExcelJS stores tables in worksheet.tables object
+                    if (wsData.tables) {
+                        for (const tableName in wsData.tables) {
+                            if (tableName.toLowerCase() === 'revitdata' || 
+                                wsData.tables[tableName].name?.toLowerCase() === 'revitdata') {
+                                hasTable = true;
+                                revitTable = wsData.tables[tableName];
+                                break;
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.log('Table check error:', e);
+                }
+                
+                if (hasTable && revitTable) {
+                    // Table exists - add data rows to the table
+                    console.log('Found RevitData table, adding rows to table');
+                    
+                    // Write data starting at row 2 (after header in row 1)
+                    dataRows.forEach((row, idx) => {
+                        const rowNum = idx + 2;
+                        wsData.getCell(`A${rowNum}`).value = row.FloorMap;
+                        wsData.getCell(`B${rowNum}`).value = row.Name;
+                        wsData.getCell(`C${rowNum}`).value = row.Area;
+                        wsData.getCell(`D${rowNum}`).value = row['NON BOMA Areas'];
+                        wsData.getCell(`E${rowNum}`).value = row['Area Scheme Name'];
+                    });
+                    
+                    // Update table reference to include all data rows
+                    const lastRow = dataRows.length + 1; // +1 for header
+                    try {
+                        revitTable.table.tableRef = `A1:E${lastRow}`;
+                    } catch (e) {
+                        console.log('Could not update table ref:', e);
+                    }
+                } else {
+                    // No table - fall back to cell-by-cell writing
+                    console.log('No RevitData table found, writing cells directly');
+                    dataRows.forEach((row, idx) => {
+                        const rowNum = idx + 2;
+                        wsData.getCell(`A${rowNum}`).value = row.FloorMap;
+                        wsData.getCell(`B${rowNum}`).value = row.Name;
+                        wsData.getCell(`C${rowNum}`).value = row.Area;
+                        wsData.getCell(`D${rowNum}`).value = row['NON BOMA Areas'];
+                        wsData.getCell(`E${rowNum}`).value = row['Area Scheme Name'];
+                    });
+                }
             }
             
             // Handle NON-BOMA Areas tab
