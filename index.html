@@ -739,9 +739,120 @@
             background: #e8f5e9;
             border-left-color: #4caf50;
         }
+        
+        /* Feedback button */
+        .feedback-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid var(--hks-grey);
+            color: var(--hks-grey);
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        .feedback-btn:hover {
+            background: var(--hks-grey);
+            color: white;
+        }
+        
+        /* Password overlay */
+        .password-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--hks-grey);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .password-box {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 90%;
+        }
+        .password-box img {
+            max-width: 280px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+        .password-box h2 {
+            color: var(--hks-grey);
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+        .password-box p {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .password-box input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+        .password-box input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .password-box button {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        .password-box button:hover {
+            background: #1565c0;
+        }
+        .password-error {
+            color: #d32f2f;
+            font-size: 13px;
+            margin-top: 10px;
+            display: none;
+        }
+        .main-content {
+            display: none;
+        }
+        .main-content.unlocked {
+            display: block;
+        }
     </style>
 </head>
 <body>
+    <!-- Password Overlay -->
+    <div class="password-overlay" id="passwordOverlay">
+        <div class="password-box">
+            <img src="https://raw.githubusercontent.com/JasonCrist/BOMATabulator-PreRelease/main/header-banner.png" alt="HKS BOMA Tabulator">
+            <h2>HKS Internal Tool</h2>
+            <p>Enter the password to access the BOMA Tabulator</p>
+            <input type="password" id="passwordInput" placeholder="Password" onkeypress="if(event.key==='Enter')checkPassword()">
+            <button onclick="checkPassword()">Enter</button>
+            <div class="password-error" id="passwordError">Incorrect password. Please try again.</div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
     <div class="container">
         <div class="header">
             <img src="https://raw.githubusercontent.com/JasonCrist/BOMATabulator-PreRelease/main/header-banner.png" alt="HKS BOMA Tabulator" class="header-banner">
@@ -983,6 +1094,13 @@
                         <p id="fileDetails" style="font-size: 14px; color: #666;"></p>
                     </div>
                 </div>
+                
+                <!-- Feedback Button -->
+                <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border);">
+                    <a href="mailto:jcrist@hksinc.com?subject=BOMA%20Tabulator%20Feedback" class="feedback-btn">
+                        <span>💬</span> Send Feedback
+                    </a>
+                </div>
             </div>
             
             <!-- Step 2: Project Info -->
@@ -1167,6 +1285,7 @@
             </div>
         </div>
     </div>
+    </div><!-- End main-content -->
     
     <script>
         // Global state
@@ -2644,6 +2763,31 @@
             ws['!ref'] = `A1:P${subRow}`;
             
             XLSX.utils.book_append_sheet(wb, ws, 'HKS-BOMA-A');
+        }
+        
+        // Password protection
+        const SITE_PASSWORD = 'HKS2024'; // Change this to your desired password
+        
+        function checkPassword() {
+            const input = document.getElementById('passwordInput');
+            const error = document.getElementById('passwordError');
+            
+            if (input.value === SITE_PASSWORD) {
+                document.getElementById('passwordOverlay').style.display = 'none';
+                document.getElementById('mainContent').classList.add('unlocked');
+                // Store in session so refresh doesn't require re-entry
+                sessionStorage.setItem('boma_authenticated', 'true');
+            } else {
+                error.style.display = 'block';
+                input.value = '';
+                input.focus();
+            }
+        }
+        
+        // Check if already authenticated this session
+        if (sessionStorage.getItem('boma_authenticated') === 'true') {
+            document.getElementById('passwordOverlay').style.display = 'none';
+            document.getElementById('mainContent').classList.add('unlocked');
         }
     </script>
 </body>
